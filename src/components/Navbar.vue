@@ -8,7 +8,7 @@ const closeMenu=()=>{
 </script>
 
 <template>
-    <nav class="flex flex-wrap justify-between items-center px-6 py-4 bg-slate-50">
+    <nav class="sticky top-0 z-50 flex flex-wrap justify-between items-center px-6 py-4 bg-slate-50 shadow-md">
         <div class="flex justify-between items-center w-full md:w-auto">
         <!--Brand-->
         <RouterLink to="/" class="text-2xl font-bold text-green-700 hover:underline underline-offset-4"
@@ -73,6 +73,17 @@ const closeMenu=()=>{
             active-class="text-green-700 underline underline-offset-4"
             @click="closeMenu">
             Contact</RouterLink>
+
+           
+
+            <RouterLink
+    to="/booking"
+    class="py-2 font-semibold text-green-700 transition hover:text-green-800"
+    active-class="underline underline-offset-4"
+    @click="closeMenu"
+>
+    Book Now
+</RouterLink>
         </div>
     </nav>
 </template>

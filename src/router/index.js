@@ -4,6 +4,7 @@ import Destinations from "../views/Destinations.vue";
 import Tours from "../views/Tours.vue";
 import About from "../views/About.vue";
 import Contact from "../views/Contact.vue";
+import Booking from "../views/Booking.vue";
 
 
 
@@ -34,6 +35,10 @@ const router= createRouter({
         {
             path:'/contact',
             component: Contact,
+        },
+        {
+            path:'/booking',
+            component: Booking,
         },
     ],
 })
