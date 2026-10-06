@@ -1,11 +1,12 @@
 <script setup>
+import { useRoute } from "vue-router";
+import Navbar from "./components/Navbar.vue";
 
-import Navbar from './components/Navbar.vue';
-
+const route = useRoute();
 </script>
 
 <template>
+  <Navbar v-if="!route.path.startsWith('/admin')" />
 
-  <Navbar />
-   <RouterView />
+  <RouterView />
 </template>

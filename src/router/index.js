@@ -5,6 +5,7 @@ import Tours from "../views/Tours.vue";
 import About from "../views/About.vue";
 import Contact from "../views/Contact.vue";
 import Booking from "../views/Booking.vue";
+import AdminLayout from "../layouts/AdminLayout.vue";
 
 
 
@@ -40,6 +41,31 @@ const router= createRouter({
             path:'/booking',
             component: Booking,
         },
+        {
+    path: "/admin",
+    component: AdminLayout,
+    children: [
+        {
+            path: "",
+            redirect: "/admin/dashboard",
+        },
+        {
+            path: "dashboard",
+            component: {
+                template: `
+                    <div>
+                        <h2 class="font-serif text-3xl text-[#1c2a22]">
+                            Dashboard
+                        </h2>
+                        <p class="mt-2 text-[#6b756e]">
+                            Welcome to the RoamNePura admin dashboard.
+                        </p>
+                    </div>
+                `,
+            },
+        },
+    ],
+},
     ],
 })
 export default router
