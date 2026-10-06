@@ -121,7 +121,7 @@ const submitForm = () => {
               </h3>
 
               <p class="mt-1 text-slate-600">
-                info@roamnepura.com
+                roamnepura@gmail.com  
               </p>
             </div>
 
@@ -143,7 +143,7 @@ const submitForm = () => {
               </h3>
 
               <p class="mt-1 text-slate-600">
-                +977 98XXXXXXXX
+                +977 9869207942
               </p>
             </div>
 
