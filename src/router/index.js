@@ -6,7 +6,11 @@ import About from "../views/About.vue";
 import Contact from "../views/Contact.vue";
 import Booking from "../views/Booking.vue";
 import AdminLayout from "../layouts/AdminLayout.vue";
-
+import AdminLogin from "../views/admin/AdminLogin.vue";
+import AdminDashboard from "../views/admin/AdminDashboard.vue";
+import AdminDestinations from "../views/admin/AdminDestinations.vue";
+import AdminDestinationCreate from "../views/admin/AdminDestinationCreate.vue";
+import AdminDestinationEdit from "../views/admin/AdminDestinationEdit.vue";
 
 
 const router= createRouter({
@@ -42,30 +46,94 @@ const router= createRouter({
             component: Booking,
         },
         {
+    path: "/admin/login",
+    component: AdminLogin,
+},
+        {
+            
     path: "/admin",
     component: AdminLayout,
     children: [
+        
         {
             path: "",
             redirect: "/admin/dashboard",
         },
         {
-            path: "dashboard",
-            component: {
-                template: `
-                    <div>
-                        <h2 class="font-serif text-3xl text-[#1c2a22]">
-                            Dashboard
-                        </h2>
-                        <p class="mt-2 text-[#6b756e]">
-                            Welcome to the RoamNePura admin dashboard.
-                        </p>
-                    </div>
-                `,
-            },
-        },
-    ],
+  path: "dashboard",
+  component: AdminDashboard,
 },
-    ],
-})
+{
+  path: "destinations",
+  component: AdminDestinations,
+},
+{
+  path: "destinations/create",
+  component: AdminDestinationCreate,
+},
+{
+  path: "destinations/:id/edit",
+  component: AdminDestinationEdit,
+},
+{
+  path: "tours",
+  component: {
+    template: `
+      <div>
+        <h2 class="font-serif text-3xl text-[#1c2a22]">
+          Tours
+        </h2>
+        <p class="mt-2 text-[#6b756e]">
+          Manage RoamNePura tours here.
+        </p>
+      </div>
+    `,
+  },
+},
+{
+  path: "bookings",
+  component: {
+    template: `
+      <div>
+        <h2 class="font-serif text-3xl text-[#1c2a22]">
+          Bookings
+        </h2>
+        <p class="mt-2 text-[#6b756e]">
+          Manage customer bookings here.
+        </p>
+      </div>
+    `,
+  },
+},
+{
+  path: "inquiries",
+  component: {
+    template: `
+      <div>
+        <h2 class="font-serif text-3xl text-[#1c2a22]">
+          Inquiries
+        </h2>
+        <p class="mt-2 text-[#6b756e]">
+          Manage customer inquiries here.
+        </p>
+      </div>
+    `,
+  },
+},
+{
+  path: "settings",
+  component: {
+    template: `
+      <div>
+        <h2 class="font-serif text-3xl text-[#1c2a22]">
+          Settings
+        </h2>
+        <p class="mt-2 text-[#6b756e]">
+          Manage admin settings here.
+        </p>
+      </div>
+    `,
+  },
+},
+],},],})
 export default router
