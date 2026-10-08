@@ -11,6 +11,8 @@ import AdminDashboard from "../views/admin/AdminDashboard.vue";
 import AdminDestinations from "../views/admin/AdminDestinations.vue";
 import AdminDestinationCreate from "../views/admin/AdminDestinationCreate.vue";
 import AdminDestinationEdit from "../views/admin/AdminDestinationEdit.vue";
+import DestinationDetails from "../views/public/destinations/DestinationDetails.vue";
+import AdminInquiries from "../views/admin/AdminInquiries.vue";
 
 
 const router= createRouter({
@@ -26,6 +28,10 @@ const router= createRouter({
             path:'/destinations',
             component: Destinations,
         },
+        {
+    path: "/destinations/:slug",
+    component: DestinationDetails,
+},
     
         {
             path:'/tours',
@@ -75,6 +81,7 @@ const router= createRouter({
   path: "destinations/:id/edit",
   component: AdminDestinationEdit,
 },
+{ path: "inquiries", component: AdminInquiries },
 {
   path: "tours",
   component: {

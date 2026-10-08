@@ -48,3 +48,28 @@ export function updateAdminDestination(id, formData) {
         }
     );
 }
+export function deleteAdminDestination(id) {
+    const token = sessionStorage.getItem("admin_token");
+
+    return axios.delete(
+        `${API_URL}/admin/destinations/${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+}
+export function toggleAdminDestinationPublish(id) {
+    const token = sessionStorage.getItem("admin_token");
+
+    return axios.patch(
+        `${API_URL}/admin/destinations/${id}/toggle-publish`,
+        {},
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+}

@@ -1,6 +1,31 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { createInquiry } from "../api/inquiries";
+import { getDestination } from "../api/destinations";
 
+const route = useRoute();
+const selectedDestination = ref(route.query.destination || "");
+const selectedDestinationId = ref(null);
+const loadDestination = async () => {
+  if (!selectedDestination.value) {
+    return;
+  }
+
+  try {
+    const response = await getDestination(
+      selectedDestination.value
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+    );
+
+    selectedDestinationId.value = response.data.id;
+
+    console.log("Selected destination:", response.data);
+  } catch (err) {
+    console.error("Unable to load destination:", err);
+  }
+};
 const form = ref({
   name: '',
   email: '',
@@ -9,17 +34,45 @@ const form = ref({
 })
 
 const submitted = ref(false)
+const submitting = ref(false)
+const error = ref("")
 
-const submitForm = () => {
-  submitted.value = true
+const submitForm = async () => {
+  submitted.value = false
+  error.value = ""
+  submitting.value = true
 
-  form.value = {
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
+  try {
+    await createInquiry({
+      name: form.value.name,
+      email: form.value.email,
+      destination_id: selectedDestinationId.value,
+      message: form.value.message,
+    })
+
+    submitted.value = true
+
+    form.value = {
+      name: '',
+      email: '',
+      subject: '',
+      message: ''
+    }
+
+    selectedDestination.value = ""
+  } catch (err) {
+    console.error(err)
+
+    error.value =
+      err.response?.data?.message ||
+      "Unable to send your inquiry. Please try again."
+  } finally {
+    submitting.value = false
   }
 }
+onMounted(() => {
+  loadDestination();
+});
 </script>
 
 <template>
@@ -126,6 +179,23 @@ const submitForm = () => {
             </div>
 
           </div>
+
+          <div>
+    <label
+        for="destination"
+        class="mb-2 block text-sm font-semibold text-slate-700"
+    >
+        Destination
+    </label>
+
+    <input
+        id="destination"
+        type="text"
+        v-model="selectedDestination"
+        placeholder="Which destination are you interested in?"
+        class="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-800 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+    />
+</div>
 
 
           <!-- Phone -->

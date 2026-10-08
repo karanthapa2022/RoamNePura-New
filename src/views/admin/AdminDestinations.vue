@@ -1,16 +1,19 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getAdminDestinations } from "../../api/adminDestinations";
+import { getAdminDestinations, deleteAdminDestination, toggleAdminDestinationPublish } from "../../api/adminDestinations";
 
 const destinations = ref([]);
 const loading = ref(false);
 const error = ref("");
+const deletingId = ref(null);
+const togglingId = ref(null);
+
 const route = useRoute();
 const router = useRouter();
 const successMessage = ref("");
 
-const fetchDestinations = async () => {
+const fetchDestinations = async () => { 
   loading.value = true;
   error.value = "";
 
@@ -24,6 +27,73 @@ const fetchDestinations = async () => {
     error.value = "Unable to load destinations.";
   } finally {
     loading.value = false;
+  }
+};
+
+const deleteDestination = async (id) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this destination?"
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  deletingId.value = id;
+  error.value = "";
+
+  try {
+    await deleteAdminDestination(id);
+
+    destinations.value = destinations.value.filter(
+      (destination) => destination.id !== id
+    );
+    successMessage.value = "Destination deleted successfully.";
+
+setTimeout(() => {
+  successMessage.value = "";
+}, 4000);
+  } catch (err) {
+    console.error(err);
+
+    error.value =
+      err.response?.data?.message ||
+      "Unable to delete destination. Please try again.";
+  } finally {
+    deletingId.value = null;
+  }
+};
+
+const togglePublish = async (id) => {
+  togglingId.value = id;
+  error.value = "";
+
+  try {
+    const response = await toggleAdminDestinationPublish(id);
+
+    const updatedDestination = response.data.destination;
+
+    const index = destinations.value.findIndex(
+      (destination) => destination.id === id
+    );
+
+    if (index !== -1) {
+      destinations.value[index] = updatedDestination;
+    }
+
+    successMessage.value = response.data.message;
+
+    setTimeout(() => {
+      successMessage.value = "";
+    }, 4000);
+  } catch (err) {
+    console.error(err);
+
+    error.value =
+      err.response?.data?.message ||
+      "Unable to update publish status. Please try again.";
+  } finally {
+    togglingId.value = null;
   }
 };
 
@@ -45,6 +115,7 @@ const checkSuccessMessage = () => {
 onMounted(() => {
   checkSuccessMessage();
   fetchDestinations();
+
 });
 </script>
 <template>
@@ -71,9 +142,16 @@ onMounted(() => {
 
     <div
   v-if="successMessage"
-  class="mb-5 flex items-center gap-3 rounded-[10px] border border-green-200 bg-[#e6f0ea] px-4 py-3 text-sm text-[#1f5c3f]"
+  class="mb-5 flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm"
+  :class="
+    successMessage.includes('unpublished')
+      ? 'border border-red-200 bg-red-50 text-red-600'
+      : 'border border-green-200 bg-[#e6f0ea] text-[#1f5c3f]'
+  "
 >
-  <span class="font-semibold">✓</span>
+  <span class="font-semibold">
+    {{ successMessage.includes("unpublished") ? "!" : "✓" }}
+  </span>
 
   <span>{{ successMessage }}</span>
 </div>
@@ -167,17 +245,36 @@ onMounted(() => {
       <td class="px-5 py-4">
         <div class="flex items-center gap-2">
           <button
-  @click="router.push(`/admin/destinations/${destination.id}/edit`)"
-  class="px-3 py-1.5 rounded-lg border border-[#e7e3da] text-sm text-[#1c2a22] hover:bg-[#f7f5f0] transition-colors duration-150"
->
-  Edit
-</button>
-
-          <button
-            class="px-3 py-1.5 rounded-lg border border-[#e7e3da] text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
-          >
-            Delete
-          </button>
+          @click="router.push(`/admin/destinations/${destination.id}/edit`)"
+          class="px-3 py-1.5 rounded-lg border border-[#e7e3da] text-sm text-[#1c2a22] hover:bg-[#f7f5f0] transition-colors duration-150"
+        >
+          Edit
+        </button>
+        <button
+              @click="togglePublish(destination.id)"
+              :disabled="togglingId === destination.id"
+              class="px-3 py-1.5 rounded-lg border text-sm transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+              :class="
+                destination.is_published
+                  ? 'border-[#e7e3da] text-[#1f5c3f] hover:bg-[#e6f0ea]'
+                  : 'border-red-200 text-red-600 hover:bg-red-50'
+              "
+            >
+              {{
+                togglingId === destination.id
+                  ? "Updating..."
+                  : destination.is_published
+                    ? "Unpublish"
+                    : "Publish"
+              }}
+            </button>
+                  <button
+          @click="deleteDestination(destination.id)"
+          :disabled="deletingId === destination.id"
+          class="px-3 py-1.5 rounded-lg border border-[#e7e3da] text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {{ deletingId === destination.id ? "Deleting..." : "Delete" }}
+        </button>
         </div>
       </td>
     </tr>
