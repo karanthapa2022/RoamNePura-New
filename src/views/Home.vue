@@ -1,3 +1,6 @@
+<script setup>
+import AppButton from '../components/ui/AppButton.vue'
+   </script>
 <template>
     <section class=" relative min-h-screen">
         <img src="/images/IMG_6933.jpg" 
@@ -7,7 +10,6 @@
         
         <!--Dark overlay-->
         <div class="absolute inset-0 bg-black/40">
-
         </div>
         <div class="relative z-10 flex min-h-screen flex-col items-center justify-center text-center px-6 py-4 fade-in">
             <p class="text-lg font-semibold text-white">Explore Nepal</p>
@@ -15,10 +17,20 @@
             style="text-shadow: 0 2px 8px rgba(0,0,0,0.45);">Your Next Adventure Starts Here</h1>
             <p class="max-w-2xl text-lg leading-relaxed text-white">Discover breathtaking destinations, unforgettable experiences,
                 and the beauty of Nepal.</p>
-                <RouterLink to="/destinations"
-                class="mt-6 inline-block rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800">
-                        Explore Destinations
-                </RouterLink>
+                
+<RouterLink
+    to="/destinations"
+    custom
+    v-slot="{ navigate }"
+>
+    <AppButton
+        variant="light"
+        class="mt-8"
+        @click="navigate"
+    >
+        Explore Destinations
+    </AppButton>
+</RouterLink>
         </div>
         <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white">
             <p class="text-sm">Scroll to explore</p>

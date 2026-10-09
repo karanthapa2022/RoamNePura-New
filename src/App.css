@@ -1,0 +1,36 @@
+
+:root {
+  /* Brand colors */
+  --color-primary: #1f5c3f;
+  --color-primary-hover: #194b33;
+  --color-secondary: #e6f0ea;
+  --color-secondary-hover: #d6e7dc;
+
+  /* Supporting colors */
+  --color-background: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-text: #1c2a22;
+  --color-text-muted: #647067;
+  --color-border: #e7e3da;
+
+  /* Typography */
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Georgia', serif;
+
+
+/* Global typography */
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+}

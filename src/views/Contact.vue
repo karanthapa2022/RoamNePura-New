@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { createInquiry } from "../api/inquiries";
 import { getDestination } from "../api/destinations";
+import AppButton from '../components/ui/AppButton.vue'
 
 const route = useRoute();
 const selectedDestination = ref(route.query.destination || "");
@@ -330,13 +331,14 @@ onMounted(() => {
 
 
           <!-- Submit -->
-          <button
-            type="submit"
-            class="w-full rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800"
-          >
-            Send Message
-          </button>
-
+          
+<AppButton
+    type="submit"
+    variant="primary"
+    fullWidth
+>
+    Send Message
+</AppButton>
         </form>
 
 
@@ -368,12 +370,20 @@ onMounted(() => {
         Have your destination in mind? Start planning your adventure with us.
       </p>
 
-      <RouterLink
-        to="/booking"
-        class="mt-7 inline-block rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800"
-      >
-        Book Your Trip
-      </RouterLink>
+      
+<RouterLink
+  to="/booking"
+  custom
+  v-slot="{ navigate }"
+>
+  <AppButton
+    variant="primary"
+    class="mt-7"
+    @click="navigate"
+  >
+    Book Your Trip
+  </AppButton>
+</RouterLink>
 
     </div>
 

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import AppButton from '../components/ui/AppButton.vue'
 
 const searchQuery = ref('')
 
@@ -160,12 +161,19 @@ const filteredTours = computed(() => {
               {{ tour.price }}
             </span>
 
-            <RouterLink
-              to="/booking"
-              class="rounded-lg bg-green-700 px-4 py-2 font-semibold text-white transition hover:bg-green-800"
-            >
-              Book Now
-            </RouterLink>
+            
+<RouterLink
+    to="/booking"
+    custom
+    v-slot="{ navigate }"
+>
+    <AppButton
+        variant="primary"
+        @click="navigate"
+    >
+        Book Now
+    </AppButton>
+</RouterLink>
 
           </div>
 
@@ -201,13 +209,20 @@ const filteredTours = computed(() => {
         of Nepal.
       </p>
 
-      <RouterLink
-        to="/booking"
-        class="mt-7 inline-block rounded-lg bg-white px-6 py-3 font-semibold text-green-700 transition hover:bg-green-50"
-      >
+      
+<RouterLink
+    to="/booking"
+    custom
+    v-slot="{ navigate }"
+>
+    <AppButton
+        variant="light"
+        class="mt-7"
+        @click="navigate"
+    >
         Plan Your Trip
-      </RouterLink>
-
+    </AppButton>
+</RouterLink>
     </div>
 
   </section>

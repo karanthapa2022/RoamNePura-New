@@ -1,4 +1,6 @@
 <script setup>
+import AppButton from '../components/ui/AppButton.vue'
+
 const reasons = [
   {
     title: 'Local Experience',
@@ -93,12 +95,20 @@ const reasons = [
           the ordinary tourist destinations.
         </p>
 
-        <RouterLink
-          to="/tours"
-          class="mt-6 inline-block rounded-lg bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800"
-        >
-          Explore Our Tours
-        </RouterLink>
+        
+<RouterLink
+  to="/tours"
+  custom
+  v-slot="{ navigate }"
+>
+  <AppButton
+    variant="primary"
+    class="mt-6"
+    @click="navigate"
+  >
+    Explore Our Tours
+  </AppButton>
+</RouterLink>
 
       </div>
 
@@ -213,12 +223,20 @@ const reasons = [
         Start planning your journey with RoamNePura today.
       </p>
 
-      <RouterLink
-        to="/booking"
-        class="mt-7 inline-block rounded-lg bg-white px-6 py-3 font-semibold text-green-700 transition hover:bg-green-50"
-      >
-        Start Your Journey
-      </RouterLink>
+      
+<RouterLink
+  to="/booking"
+  custom
+  v-slot="{ navigate }"
+>
+  <AppButton
+    variant="light"
+    class="mt-7"
+    @click="navigate"
+  >
+    Start Your Journey
+  </AppButton>
+</RouterLink>
 
     </div>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { getDestinations } from "../api/destinations";
+import AppButton from '../components/ui/AppButton.vue'
 
 const searchQuery = ref("");
 
@@ -98,12 +99,14 @@ onMounted(() => {
       >
         <p>{{ error }}</p>
 
-        <button
-          @click="fetchDestinations"
-          class="mt-3 rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800"
-        >
-          Try Again
-        </button>
+        
+<AppButton
+    class="mt-3"
+    variant="primary"
+    @click="fetchDestinations"
+>
+    Try Again
+</AppButton>
       </div>
 
       <!-- Empty -->

@@ -1,7 +1,11 @@
 <script setup>
-import { ref } from "vue";
+import { useAuthStore } from "../../stores/authStore";
+import { useRouter } from "vue-router";
 
 const emit = defineEmits(["close"]);
+
+const authStore = useAuthStore();
+const router = useRouter();
 
 const navigation = [
   { name: "Dashboard", path: "/admin/dashboard", icon: "⌂" },
@@ -11,7 +15,15 @@ const navigation = [
   { name: "Inquiries", path: "/admin/inquiries", icon: "✉" },
   { name: "Settings", path: "/admin/settings", icon: "⚙" },
 ];
+
+const handleLogout = async () => {
+  authStore.logout();
+  emit("close");
+  await router.push("/admin/login");
+};
 </script>
+
+
 
 <template>
   <aside class="h-full w-[236px] border-r border-[#e7e3da] bg-white flex flex-col">
@@ -74,11 +86,12 @@ const navigation = [
         </div>
 
         <button
-          class="w-8 h-8 rounded-lg border border-[#e7e3da] text-[#6b756e] hover:text-red-600 hover:border-red-200 transition-colors duration-150"
-          title="Logout"
-        >
-          ↪
-        </button>
+  @click="handleLogout"
+  class="w-8 h-8 rounded-lg border border-[#e7e3da] text-[#6b756e] hover:text-red-600 hover:border-red-200 transition-colors duration-150"
+  title="Logout"
+>
+  ↪
+</button>
       </div>
 
     </div>

@@ -2,12 +2,15 @@
 import { ref } from "vue";
 import { adminLogin } from "../../api/adminAuth";
 import { useRouter } from "vue-router";
+import { useAuthStore } from '../../stores/authStore'
 
 const router = useRouter();
+const authStore = useAuthStore()
 const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const error = ref("");
+const success = ref("");
 
 const handleLogin = async () => {
     error.value = "";
@@ -19,10 +22,9 @@ const handleLogin = async () => {
             password: password.value,
         });
 
-        sessionStorage.setItem("admin_token", response.data.token);
-        console.log("Token received:", !!response.data.token);
-console.log("Token stored:", !!sessionStorage.getItem("admin_token"));
-        await router.push("/admin/dashboard");
+        authStore.setToken(response.data.token);
+sessionStorage.setItem("admin_message", "Login successful! Welcome back.");
+await router.push("/admin/dashboard");
     } catch (err) {
         console.error(err);
         error.value = "Unable to sign in. Please check your credentials.";
