@@ -55,10 +55,12 @@ const router= createRouter({
     path: "/admin/login",
     component: AdminLogin,
 },
+
         {
             
     path: "/admin",
     component: AdminLayout,
+    meta: {requiresAuth: true},
     children: [
         
         {
@@ -113,21 +115,6 @@ const router= createRouter({
   },
 },
 {
-  path: "inquiries",
-  component: {
-    template: `
-      <div>
-        <h2 class="font-serif text-3xl text-[#1c2a22]">
-          Inquiries
-        </h2>
-        <p class="mt-2 text-[#6b756e]">
-          Manage customer inquiries here.
-        </p>
-      </div>
-    `,
-  },
-},
-{
   path: "settings",
   component: {
     template: `
@@ -143,4 +130,17 @@ const router= createRouter({
   },
 },
 ],},],})
+router.beforeEach((to) => {
+    const isAuthenticated = Boolean(
+        sessionStorage.getItem("admin_token")
+    );
+
+    const requiresAuth = to.matched.some(
+        (record) => record.meta.requiresAuth
+    );
+
+    if (requiresAuth && !isAuthenticated) {
+        return "/admin/login";
+    }
+});
 export default router

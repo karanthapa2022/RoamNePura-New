@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from "../../stores/authStore";
 import { useRouter } from "vue-router";
+import { adminLogout } from "../../api/adminAuth";
 
 const emit = defineEmits(["close"]);
 
@@ -17,9 +18,24 @@ const navigation = [
 ];
 
 const handleLogout = async () => {
-  authStore.logout();
-  emit("close");
-  await router.push("/admin/login");
+  const token = authStore.token;
+
+  try {
+    if (token) {
+      await adminLogout(token);
+    }
+  } catch (error) {
+    console.error("Backend logout failed:", error);
+  } finally {
+    sessionStorage.setItem(
+      "admin_message",
+      "You have been logged out successfully."
+    );
+
+    authStore.logout();
+    emit("close");
+    await router.push("/admin/login");
+  }
 };
 </script>
 

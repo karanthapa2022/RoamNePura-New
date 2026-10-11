@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { adminLogin } from "../../api/adminAuth";
 import { useRouter } from "vue-router";
 import { useAuthStore } from '../../stores/authStore'
@@ -11,6 +11,10 @@ const password = ref("");
 const loading = ref(false);
 const error = ref("");
 const success = ref("");
+onMounted(() => {
+    success.value = sessionStorage.getItem("admin_message") || "";
+    sessionStorage.removeItem("admin_message");
+});
 
 const handleLogin = async () => {
     error.value = "";
@@ -68,6 +72,15 @@ await router.push("/admin/dashboard");
             Sign in to manage RoamNePura.
           </p>
         </div>
+        
+<!-- Success notification -->
+<div
+  v-if="success"
+  class="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+>
+  {{ success }}
+</div>
+
 
         <!-- Error -->
         <div
@@ -76,6 +89,7 @@ await router.push("/admin/dashboard");
         >
           {{ error }}
         </div>
+
 
         <form @submit.prevent="handleLogin" class="space-y-4">
 
