@@ -13,7 +13,7 @@ import AdminDestinationCreate from "../views/admin/AdminDestinationCreate.vue";
 import AdminDestinationEdit from "../views/admin/AdminDestinationEdit.vue";
 import DestinationDetails from "../views/public/destinations/DestinationDetails.vue";
 import AdminInquiries from "../views/admin/AdminInquiries.vue";
-
+import AdminBookings from "../views/admin/AdminBookings.vue";
 
 const router= createRouter({
     history: createWebHistory(),
@@ -82,6 +82,10 @@ const router= createRouter({
 {
   path: "destinations/:id/edit",
   component: AdminDestinationEdit,
+},
+{
+    path: "bookings",
+    component: AdminBookings,
 },
 { path: "inquiries", component: AdminInquiries },
 {

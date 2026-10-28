@@ -34,6 +34,16 @@ const tours = [
   }
 ]
 
+const tourSlug = (name) => {
+  const slugs = {
+    'Everest Base Camp': 'everest-base-camp',
+    'Annapurna Circuit': 'annapurna-circuit',
+    'Upper Mustang': 'upper-mustang'
+  }
+
+  return slugs[name]
+}
+
 const filteredTours = computed(() => {
   return tours.filter(tour =>
     tour.name.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -162,18 +172,20 @@ const filteredTours = computed(() => {
             </span>
 
             
+
 <RouterLink
-    to="/booking"
-    custom
-    v-slot="{ navigate }"
+  :to="{ path: '/booking', query: { tour: tourSlug(tour.name) } }"
+  custom
+  v-slot="{ navigate }"
 >
-    <AppButton
-        variant="primary"
-        @click="navigate"
-    >
-        Book Now
-    </AppButton>
+  <AppButton
+    variant="primary"
+    @click="navigate"
+  >
+    Book Now
+  </AppButton>
 </RouterLink>
+
 
           </div>
 
