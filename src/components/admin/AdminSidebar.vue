@@ -1,21 +1,55 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "../../stores/authStore";
 import { useRouter } from "vue-router";
 import { adminLogout } from "../../api/adminAuth";
+import { getAdminProfile } from "../../api/adminSettings";
 
 const emit = defineEmits(["close"]);
 
 const authStore = useAuthStore();
 const router = useRouter();
 
+const adminName = ref("Administrator");
+const adminEmail = ref("");
+
 const navigation = [
   { name: "Dashboard", path: "/admin/dashboard", icon: "⌂" },
-  { name: "Destinations", path: "/admin/destinations", icon: "◉" },
+  { name: "Destinations", path: "/admin/destinations", icon: "◈" },
   { name: "Tours", path: "/admin/tours", icon: "◇" },
   { name: "Bookings", path: "/admin/bookings", icon: "▣" },
   { name: "Inquiries", path: "/admin/inquiries", icon: "✉" },
   { name: "Settings", path: "/admin/settings", icon: "⚙" },
 ];
+
+function updateAdminDetails(user) {
+  if (user?.name) adminName.value = user.name;
+  if (user?.email) adminEmail.value = user.email;
+}
+
+async function loadAdminProfile() {
+  try {
+    const response = await getAdminProfile();
+    const user = response.data.user || response.data;
+
+    updateAdminDetails(user);
+  } catch (error) {
+    console.error("Unable to load admin profile:", error);
+  }
+}
+
+function handleProfileUpdate(event) {
+  updateAdminDetails(event.detail);
+}
+
+onMounted(() => {
+  loadAdminProfile();
+  window.addEventListener("admin-profile-updated", handleProfileUpdate);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("admin-profile-updated", handleProfileUpdate);
+});
 
 const handleLogout = async () => {
   const token = authStore.token;
@@ -39,77 +73,90 @@ const handleLogout = async () => {
 };
 </script>
 
-
-
 <template>
-  <aside class="h-full w-[236px] border-r border-[#e7e3da] bg-white flex flex-col">
+  <aside class="flex h-full w-[260px] flex-col bg-[#193b2b] text-white shadow-xl">
 
     <!-- Logo -->
-    <div class="h-[76px] px-5 flex items-center border-b border-[#e7e3da]">
-      <div class="w-8 h-8 rounded-lg bg-[#1f5c3f] flex items-center justify-center text-white text-lg">
-        ▲
+    <div class="flex h-[76px] items-center border-b border-white/10 px-6">
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#dfc99d] text-lg font-bold text-[#193b2b]">
+        R
       </div>
 
-      <div class="ml-3 text-xl font-serif font-semibold text-[#1c2a22]">
-        Roam<span class="text-[#1f5c3f]">NePura</span>
+      <div class="ml-3 font-serif text-xl font-semibold tracking-wide">
+        Roam<span class="text-[#dfc99d]">NePura</span>
       </div>
 
-      <!-- Mobile close -->
       <button
         @click="emit('close')"
-        class="ml-auto lg:hidden text-[#6b756e] text-xl"
+        aria-label="Close sidebar"
+        class="ml-auto text-2xl text-white/70 transition hover:text-white lg:hidden"
       >
         ×
       </button>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 px-3 py-5 space-y-1">
+    <!-- Navigation heading -->
+    <div class="px-6 pb-3 pt-8">
+      <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-[#dfc99d]/75">
+        Main Menu
+      </p>
+    </div>
 
+    <!-- Navigation -->
+    <nav class="flex-1 space-y-2 px-4">
       <RouterLink
         v-for="item in navigation"
         :key="item.path"
         :to="item.path"
         @click="emit('close')"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm text-[#6b756e] transition-colors duration-150"
-        active-class="bg-[#e6f0ea] text-[#1f5c3f] font-semibold"
+        class="group flex items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium text-white/70 transition duration-200 hover:bg-white/10 hover:text-white"
+        active-class="!bg-[#dfc99d] !text-[#193b2b] !font-semibold shadow-md"
       >
-        <span class="w-5 text-center">
+        <span class="flex h-6 w-6 items-center justify-center text-lg">
           {{ item.icon }}
         </span>
 
         <span>{{ item.name }}</span>
-      </RouterLink>
 
+        <span class="ml-auto h-1.5 w-1.5 rounded-full bg-transparent group-[.router-link-active]:bg-[#193b2b]"></span>
+      </RouterLink>
     </nav>
 
-    <!-- Admin -->
-    <div class="border-t border-[#e7e3da] p-4">
-
+    <!-- Bottom section -->
+    <div class="border-t border-white/10 p-5">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-[#1f5c3f] text-white flex items-center justify-center text-sm font-semibold">
-          A
+
+        <!-- Dynamic Avatar -->
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#dfc99d]/40 bg-[#dfc99d] text-sm font-bold uppercase text-[#193b2b]">
+          {{ adminName.charAt(0) || "A" }}
         </div>
 
+        <!-- Dynamic Admin Details -->
         <div class="min-w-0 flex-1">
-          <p class="text-sm font-semibold text-[#1c2a22]">
-            Admin
+          <p class="truncate text-sm font-semibold text-white">
+            {{ adminName }}
           </p>
 
-          <p class="text-xs text-[#6b756e] truncate">
-            admin@roamnepura.com
+          <p class="truncate text-xs text-white/55">
+            {{ adminEmail }}
           </p>
         </div>
 
+        <!-- Logout -->
         <button
-  @click="handleLogout"
-  class="w-8 h-8 rounded-lg border border-[#e7e3da] text-[#6b756e] hover:text-red-600 hover:border-red-200 transition-colors duration-150"
-  title="Logout"
->
-  ↪
-</button>
+          @click="handleLogout"
+          title="Logout"
+          aria-label="Logout"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 text-lg text-white/70 transition hover:border-red-300/40 hover:bg-red-500/15 hover:text-red-200"
+        >
+          ↪
+        </button>
+
       </div>
 
+      <p class="mt-5 text-center text-[10px] tracking-wide text-white/35">
+        © 2026 RoamNePura Admin
+      </p>
     </div>
 
   </aside>

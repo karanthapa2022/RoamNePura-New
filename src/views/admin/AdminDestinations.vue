@@ -1,19 +1,43 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getAdminDestinations, deleteAdminDestination, toggleAdminDestinationPublish } from "../../api/adminDestinations";
 
+import {
+  getAdminDestinations,
+  deleteAdminDestination,
+  toggleAdminDestinationPublish,
+} from "../../api/adminDestinations";
+
+// State
 const destinations = ref([]);
 const loading = ref(false);
 const error = ref("");
 const deletingId = ref(null);
 const togglingId = ref(null);
-
-const route = useRoute();
-const router = useRouter();
 const successMessage = ref("");
 
-const fetchDestinations = async () => { 
+// Router
+const route = useRoute();
+const router = useRouter();
+
+// Success message timer
+let successTimer = null;
+
+const showSuccessMessage = (message) => {
+  successMessage.value = message;
+
+  if (successTimer) {
+    clearTimeout(successTimer);
+  }
+
+  successTimer = setTimeout(() => {
+    successMessage.value = "";
+    successTimer = null;
+  }, 4000);
+};
+
+// Fetch destinations
+const fetchDestinations = async () => {
   loading.value = true;
   error.value = "";
 
@@ -21,15 +45,20 @@ const fetchDestinations = async () => {
     const response = await getAdminDestinations();
 
     destinations.value = response.data;
+
     console.log("Admin Destinations:", response.data);
   } catch (err) {
-    console.error(err);
-    error.value = "Unable to load destinations.";
+    console.error("Fetch destinations error:", err);
+
+    error.value =
+      err.response?.data?.message ||
+      "Unable to load destinations.";
   } finally {
     loading.value = false;
   }
 };
 
+// Delete destination
 const deleteDestination = async (id) => {
   const confirmed = window.confirm(
     "Are you sure you want to delete this destination?"
@@ -48,13 +77,12 @@ const deleteDestination = async (id) => {
     destinations.value = destinations.value.filter(
       (destination) => destination.id !== id
     );
-    successMessage.value = "Destination deleted successfully.";
 
-setTimeout(() => {
-  successMessage.value = "";
-}, 4000);
+    showSuccessMessage(
+      "Destination deleted successfully."
+    );
   } catch (err) {
-    console.error(err);
+    console.error("Delete destination error:", err);
 
     error.value =
       err.response?.data?.message ||
@@ -64,6 +92,7 @@ setTimeout(() => {
   }
 };
 
+// Toggle publish status
 const togglePublish = async (id) => {
   togglingId.value = id;
   error.value = "";
@@ -81,13 +110,9 @@ const togglePublish = async (id) => {
       destinations.value[index] = updatedDestination;
     }
 
-    successMessage.value = response.data.message;
-
-    setTimeout(() => {
-      successMessage.value = "";
-    }, 4000);
+    showSuccessMessage(response.data.message);
   } catch (err) {
-    console.error(err);
+    console.error("Toggle publish error:", err);
 
     error.value =
       err.response?.data?.message ||
@@ -97,31 +122,39 @@ const togglePublish = async (id) => {
   }
 };
 
+// Check success message from redirect
 const checkSuccessMessage = () => {
   if (route.query.success === "created") {
-    successMessage.value = "Destination created successfully.";
-  }
-
-  if (route.query.success === "updated") {
-    successMessage.value = "Destination updated successfully.";
-  }
-
-  if (successMessage.value) {
-    setTimeout(() => {
-      successMessage.value = "";
-    }, 4000);
+    showSuccessMessage(
+      "Destination created successfully."
+    );
+  } else if (route.query.success === "updated") {
+    showSuccessMessage(
+      "Destination updated successfully."
+    );
   }
 };
+
+// Lifecycle hooks
 onMounted(() => {
   checkSuccessMessage();
   fetchDestinations();
+});
 
+onUnmounted(() => {
+  if (successTimer) {
+    clearTimeout(successTimer);
+  }
 });
 </script>
+
 <template>
   <div>
+
     <!-- Page Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div>
         <h2 class="font-serif text-3xl text-[#1c2a22]">
           Destinations
@@ -140,146 +173,192 @@ onMounted(() => {
       </button>
     </div>
 
+    <!-- Success Message -->
     <div
-  v-if="successMessage"
-  class="mb-5 flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm"
-  :class="
-    successMessage.includes('unpublished')
-      ? 'border border-red-200 bg-red-50 text-red-600'
-      : 'border border-green-200 bg-[#e6f0ea] text-[#1f5c3f]'
-  "
->
-  <span class="font-semibold">
-    {{ successMessage.includes("unpublished") ? "!" : "✓" }}
-  </span>
+      v-if="successMessage"
+      class="mt-5 mb-5 flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm"
+      :class="
+        successMessage.toLowerCase().includes('unpublished')
+          ? 'border border-red-200 bg-red-50 text-red-600'
+          : 'border border-green-200 bg-[#e6f0ea] text-[#1f5c3f]'
+      "
+    >
+      <span class="font-semibold">
+        {{ successMessage.toLowerCase().includes("unpublished") ? "!" : "✓" }}
+      </span>
 
-  <span>{{ successMessage }}</span>
-</div>
+      <span>{{ successMessage }}</span>
+    </div>
 
     <!-- Destination Table -->
-    <tbody class="divide-y divide-[#e7e3da]">
-
-  <!-- Loading -->
-  <tr v-if="loading">
-    <td
-      colspan="5"
-      class="px-5 py-12 text-center text-sm text-[#6b756e]"
+    <div
+      class="mt-6 overflow-x-auto rounded-xl border border-[#e7e3da]"
     >
-      Loading destinations...
-    </td>
-  </tr>
+      <table class="w-full text-left">
 
-  <!-- Error -->
-  <tr v-else-if="error">
-    <td
-      colspan="5"
-      class="px-5 py-12 text-center"
-    >
-      <p class="text-sm text-red-600">
-        {{ error }}
-      </p>
+        <!-- Table Header -->
+        <thead class="bg-[#f7f5f0]">
+          <tr>
+            <th class="px-5 py-4 text-xs font-semibold uppercase text-[#6b756e]">
+              Destination
+            </th>
 
-      <button
-        @click="fetchDestinations"
-        class="mt-3 px-4 py-2 rounded-lg bg-[#1f5c3f] text-white text-sm hover:bg-[#194d35] transition-colors duration-150"
-      >
-        Try Again
-      </button>
-    </td>
-  </tr>
+            <th class="px-5 py-4 text-xs font-semibold uppercase text-[#6b756e]">
+              Location
+            </th>
 
-  <!-- Empty -->
-  <tr v-else-if="destinations.length === 0">
-    <td
-      colspan="5"
-      class="px-5 py-12 text-center"
-    >
-      <p class="text-sm font-medium text-[#1c2a22]">
-        No destinations found
-      </p>
+            <th class="px-5 py-4 text-xs font-semibold uppercase text-[#6b756e]">
+              Duration
+            </th>
 
-      <p class="mt-1 text-sm text-[#6b756e]">
-        Add your first destination to get started.
-      </p>
-    </td>
-  </tr>
+            <th class="px-5 py-4 text-xs font-semibold uppercase text-[#6b756e]">
+              Status
+            </th>
 
-  <!-- Destinations -->
-  <template v-else>
-    <tr
-      v-for="destination in destinations"
-      :key="destination.id"
-      class="hover:bg-[#f7f5f0] transition-colors duration-150"
-    >
-      <td class="px-5 py-4">
-        <div class="font-medium text-[#1c2a22]">
-          {{ destination.name }}
-        </div>
+            <th class="px-5 py-4 text-xs font-semibold uppercase text-[#6b756e]">
+              Actions
+            </th>
+          </tr>
+        </thead>
 
-        <div class="text-xs text-[#6b756e] mt-1">
-          {{ destination.slug }}
-        </div>
-      </td>
+        <!-- Table Body -->
+        <tbody class="divide-y divide-[#e7e3da]">
 
-      <td class="px-5 py-4 text-sm text-[#6b756e]">
-        {{ destination.location || "—" }}
-      </td>
-
-      <td class="px-5 py-4 text-sm text-[#6b756e]">
-        {{ destination.duration || "—" }}
-      </td>
-
-      <td class="px-5 py-4">
-        <span
-          class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
-          :class="
-            destination.is_published
-              ? 'bg-[#e6f0ea] text-[#1f5c3f]'
-              : 'bg-[#eeeae3] text-[#6b756e]'
-          "
-        >
-          {{ destination.is_published ? "Published" : "Draft" }}
-        </span>
-      </td>
-
-      <td class="px-5 py-4">
-        <div class="flex items-center gap-2">
-          <button
-          @click="router.push(`/admin/destinations/${destination.id}/edit`)"
-          class="px-3 py-1.5 rounded-lg border border-[#e7e3da] text-sm text-[#1c2a22] hover:bg-[#f7f5f0] transition-colors duration-150"
-        >
-          Edit
-        </button>
-        <button
-              @click="togglePublish(destination.id)"
-              :disabled="togglingId === destination.id"
-              class="px-3 py-1.5 rounded-lg border text-sm transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
-              :class="
-                destination.is_published
-                  ? 'border-[#e7e3da] text-[#1f5c3f] hover:bg-[#e6f0ea]'
-                  : 'border-red-200 text-red-600 hover:bg-red-50'
-              "
+          <!-- Loading -->
+          <tr v-if="loading">
+            <td
+              colspan="5"
+              class="px-5 py-12 text-center text-sm text-[#6b756e]"
             >
-              {{
-                togglingId === destination.id
-                  ? "Updating..."
-                  : destination.is_published
-                    ? "Unpublish"
-                    : "Publish"
-              }}
-            </button>
-                  <button
-          @click="deleteDestination(destination.id)"
-          :disabled="deletingId === destination.id"
-          class="px-3 py-1.5 rounded-lg border border-[#e7e3da] text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {{ deletingId === destination.id ? "Deleting..." : "Delete" }}
-        </button>
-        </div>
-      </td>
-    </tr>
-  </template>
+              Loading destinations...
+            </td>
+          </tr>
 
-</tbody>
+          <!-- Error -->
+          <tr v-else-if="error">
+            <td colspan="5" class="px-5 py-12 text-center">
+              <p class="text-sm text-red-600">
+                {{ error }}
+              </p>
+
+              <button
+                @click="fetchDestinations"
+                class="mt-3 rounded-lg bg-[#1f5c3f] px-4 py-2 text-sm text-white transition-colors duration-150 hover:bg-[#194d35]"
+              >
+                Try Again
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty -->
+          <tr v-else-if="destinations.length === 0">
+            <td colspan="5" class="px-5 py-12 text-center">
+              <p class="text-sm font-medium text-[#1c2a22]">
+                No destinations found
+              </p>
+
+              <p class="mt-1 text-sm text-[#6b756e]">
+                Add your first destination to get started.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Destinations -->
+          <template v-else>
+            <tr
+              v-for="destination in destinations"
+              :key="destination.id"
+              class="transition-colors duration-150 hover:bg-[#f7f5f0]"
+            >
+
+              <!-- Destination Name -->
+              <td class="px-5 py-4">
+                <div class="font-medium text-[#1c2a22]">
+                  {{ destination.name }}
+                </div>
+
+                <div class="mt-1 text-xs text-[#6b756e]">
+                  {{ destination.slug }}
+                </div>
+              </td>
+
+              <!-- Location -->
+              <td class="px-5 py-4 text-sm text-[#6b756e]">
+                {{ destination.location || "—" }}
+              </td>
+
+              <!-- Duration -->
+              <td class="px-5 py-4 text-sm text-[#6b756e]">
+                {{ destination.duration || "—" }}
+              </td>
+
+              <!-- Status -->
+              <td class="px-5 py-4">
+                <span
+                  class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                  :class="
+                    destination.is_published
+                      ? 'bg-[#e6f0ea] text-[#1f5c3f]'
+                      : 'bg-[#eeeae3] text-[#6b756e]'
+                  "
+                >
+                  {{ destination.is_published ? "Published" : "Draft" }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-2">
+
+                  <!-- Edit -->
+                  <button
+                    @click="router.push(`/admin/destinations/${destination.id}/edit`)"
+                    class="rounded-lg border border-[#e7e3da] px-3 py-1.5 text-sm text-[#1c2a22] transition-colors duration-150 hover:bg-[#f7f5f0]"
+                  >
+                    Edit
+                  </button>
+
+                  <!-- Publish / Unpublish -->
+                  <button
+                    @click="togglePublish(destination.id)"
+                    :disabled="togglingId === destination.id"
+                    class="rounded-lg border px-3 py-1.5 text-sm transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60"
+                    :class="
+                      destination.is_published
+                        ? 'border-[#e7e3da] text-[#1f5c3f] hover:bg-[#e6f0ea]'
+                        : 'border-red-200 text-red-600 hover:bg-red-50'
+                    "
+                  >
+                    {{
+                      togglingId === destination.id
+                        ? "Updating..."
+                        : destination.is_published
+                          ? "Unpublish"
+                          : "Publish"
+                    }}
+                  </button>
+
+                  <!-- Delete -->
+                  <button
+                    @click="deleteDestination(destination.id)"
+                    :disabled="deletingId === destination.id"
+                    class="rounded-lg border border-[#e7e3da] px-3 py-1.5 text-sm text-red-600 transition-colors duration-150 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {{
+                      deletingId === destination.id
+                        ? "Deleting..."
+                        : "Delete"
+                    }}
+                  </button>
+
+                </div>
+              </td>
+            </tr>
+          </template>
+
+        </tbody>
+      </table>
+    </div>
+
   </div>
 </template>

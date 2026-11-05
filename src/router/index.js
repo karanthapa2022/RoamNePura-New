@@ -5,7 +5,7 @@ import Tours from "../views/Tours.vue";
 import About from "../views/About.vue";
 import Contact from "../views/Contact.vue";
 import Booking from "../views/Booking.vue";
-import AdminLayout from "../layouts/AdminLayout.vue";
+import AdminLayout from "../Layouts/AdminLayout.vue";
 import AdminLogin from "../views/admin/AdminLogin.vue";
 import AdminDashboard from "../views/admin/AdminDashboard.vue";
 import AdminDestinations from "../views/admin/AdminDestinations.vue";
@@ -14,6 +14,10 @@ import AdminDestinationEdit from "../views/admin/AdminDestinationEdit.vue";
 import DestinationDetails from "../views/public/destinations/DestinationDetails.vue";
 import AdminInquiries from "../views/admin/AdminInquiries.vue";
 import AdminBookings from "../views/admin/AdminBookings.vue";
+import AdminTours from "../views/admin/AdminTours.vue";
+import AdminTourForm from "../views/admin/AdminTourForm.vue";
+import TourDetails from "../views/public/tours/TourDetails.vue";
+import AdminSettings from "../views/admin/AdminSettings.vue";
 
 const router= createRouter({
     history: createWebHistory(),
@@ -37,6 +41,10 @@ const router= createRouter({
             path:'/tours',
             component: Tours,
         },
+        {
+    path: "/tours/:slug",
+    component: TourDetails,
+},
     
         {
             path:'/about',
@@ -84,54 +92,25 @@ const router= createRouter({
   component: AdminDestinationEdit,
 },
 {
+    path: "tours",
+    component: AdminTours,
+},
+{
+    path: "tours/create",
+    component: AdminTourForm,
+},
+{
+    path: "tours/:id/edit",
+    component: AdminTourForm,
+},
+{
     path: "bookings",
     component: AdminBookings,
 },
 { path: "inquiries", component: AdminInquiries },
 {
-  path: "tours",
-  component: {
-    template: `
-      <div>
-        <h2 class="font-serif text-3xl text-[#1c2a22]">
-          Tours
-        </h2>
-        <p class="mt-2 text-[#6b756e]">
-          Manage RoamNePura tours here.
-        </p>
-      </div>
-    `,
-  },
-},
-{
-  path: "bookings",
-  component: {
-    template: `
-      <div>
-        <h2 class="font-serif text-3xl text-[#1c2a22]">
-          Bookings
-        </h2>
-        <p class="mt-2 text-[#6b756e]">
-          Manage customer bookings here.
-        </p>
-      </div>
-    `,
-  },
-},
-{
   path: "settings",
-  component: {
-    template: `
-      <div>
-        <h2 class="font-serif text-3xl text-[#1c2a22]">
-          Settings
-        </h2>
-        <p class="mt-2 text-[#6b756e]">
-          Manage admin settings here.
-        </p>
-      </div>
-    `,
-  },
+  component: AdminSettings,
 },
 ],},],})
 router.beforeEach((to) => {

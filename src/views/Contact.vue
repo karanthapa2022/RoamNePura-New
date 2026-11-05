@@ -1,32 +1,23 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { createInquiry } from "../api/inquiries";
-import { getDestination } from "../api/destinations";
-import AppButton from '../components/ui/AppButton.vue'
+import { createInquiry } from '../api/inquiries'
+import { getDestinations } from '../api/destinations'
+import { getSiteSettings } from '../api/siteSettings'
 
-const route = useRoute();
-const selectedDestination = ref(route.query.destination || "");
-const selectedDestinationId = ref(null);
-const loadDestination = async () => {
-  if (!selectedDestination.value) {
-    return;
-  }
+const route = useRoute()
 
-  try {
-    const response = await getDestination(
-      selectedDestination.value
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-    );
+const destinations = ref([])
+const selectedDestinationId = ref('')
+const loadingDestinations = ref(false)
 
-    selectedDestinationId.value = response.data.id;
+const siteSettings = ref({
+  site_name: 'RoamNePura',
+  contact_email: '',
+  contact_phone: '',
+  address: ''
+})
 
-    console.log("Selected destination:", response.data);
-  } catch (err) {
-    console.error("Unable to load destination:", err);
-  }
-};
 const form = ref({
   name: '',
   email: '',
@@ -36,19 +27,81 @@ const form = ref({
 
 const submitted = ref(false)
 const submitting = ref(false)
-const error = ref("")
+const error = ref('')
+
+async function loadSiteSettings() {
+  try {
+    const response = await getSiteSettings()
+    const data = response.data.settings || response.data
+
+    siteSettings.value = {
+      site_name: data.site_name || 'RoamNePura',
+      contact_email: data.contact_email || '',
+      contact_phone: data.contact_phone || '',
+      address: data.address || ''
+    }
+  } catch (err) {
+    console.error('Unable to load contact settings:', err)
+  }
+}
+
+const loadDestinations = async () => {
+  loadingDestinations.value = true
+
+  try {
+    const response = await getDestinations()
+    destinations.value = response.data.filter(
+      destination => destination.is_published
+    )
+
+    const requestedDestination = route.query.destination
+
+    if (requestedDestination) {
+      const normalized = String(requestedDestination)
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+
+      const match = destinations.value.find(destination =>
+        destination.slug?.toLowerCase() === normalized ||
+        destination.name?.toLowerCase() === String(requestedDestination).toLowerCase()
+      )
+
+      if (match) {
+        selectedDestinationId.value = match.id
+      }
+    }
+  } catch (err) {
+    console.error('Unable to load destinations:', err)
+  } finally {
+    loadingDestinations.value = false
+  }
+}
 
 const submitForm = async () => {
   submitted.value = false
-  error.value = ""
+  error.value = ''
+
+  if (
+    !form.value.name.trim() ||
+    !form.value.email.trim() ||
+    !form.value.message.trim()
+  ) {
+    error.value = 'Please complete all required fields.'
+    return
+  }
+
   submitting.value = true
 
   try {
+    const fullMessage = form.value.subject.trim()
+      ? `Subject: ${form.value.subject.trim()}\n\n${form.value.message.trim()}`
+      : form.value.message.trim()
+
     await createInquiry({
-      name: form.value.name,
-      email: form.value.email,
-      destination_id: selectedDestinationId.value,
-      message: form.value.message,
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      destination_id: selectedDestinationId.value || null,
+      message: fullMessage
     })
 
     submitted.value = true
@@ -60,332 +113,325 @@ const submitForm = async () => {
       message: ''
     }
 
-    selectedDestination.value = ""
+    selectedDestinationId.value = ''
   } catch (err) {
-    console.error(err)
+    console.error('Inquiry submission failed:', err)
 
     error.value =
       err.response?.data?.message ||
-      "Unable to send your inquiry. Please try again."
+      'Unable to send your inquiry. Please try again.'
   } finally {
     submitting.value = false
   }
 }
+
 onMounted(() => {
-  loadDestination();
-});
+  loadSiteSettings()
+  loadDestinations()
+})
 </script>
 
 <template>
-  <!-- Hero Section -->
-  <section class="relative min-h-[55vh]">
+  <main class="bg-[#f8f7f2]">
 
-    <img
-      src="/images/IMG_6933.jpg"
-      alt="Nepal mountains"
-      class="absolute inset-0 h-full w-full object-cover object-center"
-    />
+    <!-- Hero -->
+    <section class="relative flex min-h-[55vh] items-center justify-center overflow-hidden">
+      <img
+        src="/images/IMG_6933.jpg"
+        alt="Beautiful mountain landscape in Nepal"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
 
-    <!-- Dark Overlay -->
-    <div class="absolute inset-0 bg-black/45"></div>
+      <div class="absolute inset-0 bg-[#10271e]/55"></div>
 
-    <div
-      class="relative z-10 flex min-h-[55vh] flex-col items-center justify-center px-6 text-center"
-    >
-      <p class="text-lg font-semibold text-white">
-        Get In Touch
-      </p>
-
-      <h1
-        class="mt-2 text-4xl font-bold text-white md:text-6xl"
-        style="text-shadow: 0 2px 8px rgba(0,0,0,0.45);"
-      >
-        Contact Us
-      </h1>
-
-      <p class="mt-4 max-w-2xl text-lg leading-relaxed text-white">
-        Have a question about Nepal or planning your next adventure?
-        We'd love to hear from you.
-      </p>
-    </div>
-
-  </section>
-
-
-  <!-- Contact Section -->
-  <section class="px-6 py-16">
-
-    <div class="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
-
-      <!-- Contact Information -->
-      <div>
-
-        <p class="font-semibold text-green-700">
-          Let's Talk
+      <div class="relative z-10 mx-auto max-w-3xl px-6 py-20 text-center">
+        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-[#d7c49a]">
+          Get In Touch
         </p>
 
-        <h2 class="mt-2 text-3xl font-bold text-slate-800 md:text-4xl">
-          We'd Love To Hear From You
-        </h2>
+        <h1 class="mt-5 font-serif text-5xl font-medium text-white md:text-7xl">
+          Let's Plan Your Journey
+        </h1>
 
-        <p class="mt-4 leading-relaxed text-slate-600">
-          Whether you have a question about our tours, need help planning
-          your trip, or simply want to learn more about Nepal, feel free
-          to reach out to us.
+        <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/85 md:text-lg">
+          Have a question or need help planning your Nepal adventure?
+          Tell us what you're looking for. We'd love to help.
         </p>
+      </div>
+    </section>
 
+    <!-- Contact content -->
+    <section class="px-5 py-20 md:px-8 md:py-24">
+      <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.85fr_1.15fr]">
 
-        <!-- Contact Details -->
-        <div class="mt-8 space-y-6">
+        <!-- Information -->
+        <div class="py-3">
+          <p class="text-xs font-bold uppercase tracking-[0.25em] text-[#9b8051]">
+            We'd Love To Hear From You
+          </p>
 
-          <!-- Location -->
-          <div class="flex items-start gap-4">
+          <h2 class="mt-4 font-serif text-4xl leading-tight text-[#193b2b] md:text-5xl">
+            Let's Talk About Your Next Adventure
+          </h2>
 
+          <p class="mt-6 max-w-lg leading-8 text-slate-600">
+            Whether you have questions about our destinations, need
+            assistance planning your trip, or want to learn more about
+            travelling in Nepal, our team is here to help.
+          </p>
+
+          <div class="mt-12 space-y-8">
+
+            <!-- Location -->
             <div
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
+              v-if="siteSettings.address"
+              class="flex items-start gap-5"
             >
-              📍
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#e9eee7] text-xl">
+                📍
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-[#193b2b]">Our Location</h3>
+                <p class="mt-1 whitespace-pre-line text-slate-600">
+                  {{ siteSettings.address }}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h3 class="font-bold text-slate-800">
-                Location
-              </h3>
+            <!-- Email -->
+            <div
+              v-if="siteSettings.contact_email"
+              class="flex items-start gap-5"
+            >
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#e9eee7] text-xl">
+                ✉
+              </div>
 
-              <p class="mt-1 text-slate-600">
-                Kathmandu, Nepal
-              </p>
+              <div>
+                <h3 class="font-semibold text-[#193b2b]">Email Us</h3>
+                <a
+                  :href="`mailto:${siteSettings.contact_email}`"
+                  class="mt-1 inline-block break-all text-slate-600 transition hover:text-[#9b8051]"
+                >
+                  {{ siteSettings.contact_email }}
+                </a>
+              </div>
             </div>
+
+            <!-- Phone -->
+            <div
+              v-if="siteSettings.contact_phone"
+              class="flex items-start gap-5"
+            >
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#e9eee7] text-xl">
+                ☎
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-[#193b2b]">Call Us</h3>
+                <a
+                  :href="`tel:${siteSettings.contact_phone.replace(/[^+\d]/g, '')}`"
+                  class="mt-1 inline-block text-slate-600 transition hover:text-[#9b8051]"
+                >
+                  {{ siteSettings.contact_phone }}
+                </a>
+              </div>
+            </div>
+
+            <!-- Fallback -->
+            <p
+              v-if="!siteSettings.address && !siteSettings.contact_email && !siteSettings.contact_phone"
+              class="rounded-xl bg-[#e9eee7] p-5 text-sm leading-7 text-slate-600"
+            >
+              Contact information will be available here soon.
+            </p>
 
           </div>
 
+          <div class="mt-12 rounded-2xl bg-[#193b2b] p-7 text-white">
+            <p class="font-serif text-2xl">
+              Your Nepal story starts here.
+            </p>
 
-          <!-- Email -->
-          <div class="flex items-start gap-4">
-
-            <div
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
-            >
-              ✉
-            </div>
-
-            <div>
-              <h3 class="font-bold text-slate-800">
-                Email
-              </h3>
-
-              <p class="mt-1 text-slate-600">
-                roamnepura@gmail.com  
-              </p>
-            </div>
-
+            <p class="mt-3 text-sm leading-7 text-white/75">
+              From peaceful villages to breathtaking Himalayan landscapes,
+              let's find the journey that's right for you.
+            </p>
           </div>
+        </div>
 
-          <div>
-    <label
-        for="destination"
-        class="mb-2 block text-sm font-semibold text-slate-700"
-    >
-        Destination
-    </label>
+        <!-- Contact form -->
+        <div class="rounded-3xl border border-[#e9e6dc] bg-white p-6 shadow-sm md:p-10">
 
-    <input
-        id="destination"
-        type="text"
-        v-model="selectedDestination"
-        placeholder="Which destination are you interested in?"
-        class="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-800 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-    />
-</div>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#9b8051]">
+            Send An Inquiry
+          </p>
 
+          <h2 class="mt-3 font-serif text-3xl text-[#193b2b] md:text-4xl">
+            Send Us A Message
+          </h2>
 
-          <!-- Phone -->
-          <div class="flex items-start gap-4">
+          <p class="mt-3 text-sm leading-7 text-slate-500">
+            Fill in the details below and our team will get back to you.
+          </p>
 
-            <div
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
-            >
-              ☎
-            </div>
+          <form @submit.prevent="submitForm" class="mt-8 space-y-6">
 
+            <!-- Name -->
             <div>
-              <h3 class="font-bold text-slate-800">
-                Phone
-              </h3>
+              <label for="name" class="mb-2 block text-sm font-semibold text-slate-700">
+                Your Name *
+              </label>
 
-              <p class="mt-1 text-slate-600">
-                +977 9869207942
-              </p>
+              <input
+                id="name"
+                v-model="form.name"
+                type="text"
+                placeholder="Enter your full name"
+                autocomplete="name"
+                required
+                class="w-full rounded-xl border border-slate-200 bg-[#fafaf8] px-4 py-3.5 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
+              />
             </div>
 
-          </div>
+            <!-- Email -->
+            <div>
+              <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">
+                Email Address *
+              </label>
 
+              <input
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="Enter your email address"
+                autocomplete="email"
+                required
+                class="w-full rounded-xl border border-slate-200 bg-[#fafaf8] px-4 py-3.5 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
+              />
+            </div>
+
+            <!-- Destination -->
+            <div>
+              <label for="destination" class="mb-2 block text-sm font-semibold text-slate-700">
+                Interested Destination
+              </label>
+
+              <select
+                id="destination"
+                v-model="selectedDestinationId"
+                class="w-full rounded-xl border border-slate-200 bg-[#fafaf8] px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
+              >
+                <option value="">
+                  {{ loadingDestinations ? 'Loading destinations...' : 'Select a destination (optional)' }}
+                </option>
+
+                <option
+                  v-for="destination in destinations"
+                  :key="destination.id"
+                  :value="destination.id"
+                >
+                  {{ destination.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Subject -->
+            <div>
+              <label for="subject" class="mb-2 block text-sm font-semibold text-slate-700">
+                Subject *
+              </label>
+
+              <input
+                id="subject"
+                v-model="form.subject"
+                type="text"
+                placeholder="What would you like to know?"
+                required
+                class="w-full rounded-xl border border-slate-200 bg-[#fafaf8] px-4 py-3.5 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
+              />
+            </div>
+
+            <!-- Message -->
+            <div>
+              <label for="message" class="mb-2 block text-sm font-semibold text-slate-700">
+                Your Message *
+              </label>
+
+              <textarea
+                id="message"
+                v-model="form.message"
+                rows="5"
+                placeholder="Tell us about your plans or questions..."
+                required
+                class="w-full resize-none rounded-xl border border-slate-200 bg-[#fafaf8] px-4 py-3.5 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
+              ></textarea>
+            </div>
+
+            <!-- Error -->
+            <div
+              v-if="error"
+              class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              role="alert"
+            >
+              {{ error }}
+            </div>
+
+            <!-- Success -->
+            <div
+              v-if="submitted"
+              class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+              role="status"
+            >
+              Thank you for contacting {{ siteSettings.site_name }}!
+              Your inquiry has been sent successfully.
+            </div>
+
+            <!-- Submit -->
+            <button
+              type="submit"
+              :disabled="submitting"
+              class="flex w-full items-center justify-center gap-2 rounded-full bg-[#193b2b] px-7 py-4 font-semibold text-white transition hover:bg-[#2b5540] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {{ submitting ? 'Sending Message...' : 'Send Message' }}
+              <span v-if="!submitting">→</span>
+            </button>
+
+            <p class="text-center text-xs text-slate-400">
+              We appreciate your interest in exploring Nepal with us.
+            </p>
+
+          </form>
         </div>
 
       </div>
+    </section>
 
-
-      <!-- Contact Form -->
-      <div class="rounded-2xl bg-white p-6 shadow-lg md:p-8">
-
-        <h2 class="text-2xl font-bold text-slate-800">
-          Send Us A Message
-        </h2>
-
-        <p class="mt-2 text-slate-600">
-          Fill out the form and we'll get back to you soon.
+    <!-- Bottom CTA -->
+    <section class="bg-[#eaece4] px-6 py-20 text-center">
+      <div class="mx-auto max-w-3xl">
+        <p class="text-xs font-bold uppercase tracking-[0.25em] text-[#9b8051]">
+          Discover Nepal
         </p>
 
+        <h2 class="mt-4 font-serif text-4xl text-[#193b2b] md:text-5xl">
+          Ready To Explore Nepal?
+        </h2>
 
-        <form
-          @submit.prevent="submitForm"
-          class="mt-6 space-y-5"
+        <p class="mx-auto mt-5 max-w-xl leading-8 text-slate-600">
+          Your next unforgettable adventure is waiting.
+          Let's start planning your journey.
+        </p>
+
+        <RouterLink
+          to="/booking"
+          class="mt-8 inline-flex items-center justify-center rounded-full bg-[#193b2b] px-8 py-4 font-semibold text-white transition hover:bg-[#2b5540]"
         >
-
-          <!-- Name -->
-          <div>
-
-            <label
-              for="name"
-              class="mb-2 block font-medium text-slate-700"
-            >
-              Your Name
-            </label>
-
-            <input
-              id="name"
-              v-model="form.name"
-              type="text"
-              placeholder="Enter your name"
-              required
-              class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-            />
-
-          </div>
-
-
-          <!-- Email -->
-          <div>
-
-            <label
-              for="email"
-              class="mb-2 block font-medium text-slate-700"
-            >
-              Email Address
-            </label>
-
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              placeholder="Enter your email"
-              required
-              class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-            />
-
-          </div>
-
-
-          <!-- Subject -->
-          <div>
-
-            <label
-              for="subject"
-              class="mb-2 block font-medium text-slate-700"
-            >
-              Subject
-            </label>
-
-            <input
-              id="subject"
-              v-model="form.subject"
-              type="text"
-              placeholder="What can we help you with?"
-              required
-              class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-            />
-
-          </div>
-
-
-          <!-- Message -->
-          <div>
-
-            <label
-              for="message"
-              class="mb-2 block font-medium text-slate-700"
-            >
-              Message
-            </label>
-
-            <textarea
-              id="message"
-              v-model="form.message"
-              rows="5"
-              placeholder="Tell us about your trip..."
-              required
-              class="w-full resize-none rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-            ></textarea>
-
-          </div>
-
-
-          <!-- Submit -->
-          
-<AppButton
-    type="submit"
-    variant="primary"
-    fullWidth
->
-    Send Message
-</AppButton>
-        </form>
-
-
-        <!-- Success Message -->
-        <div
-          v-if="submitted"
-          class="mt-5 rounded-lg bg-green-50 p-4 text-center text-sm font-medium text-green-700"
-        >
-          Thanks for reaching out! We'll get back to you soon.
-        </div>
-
+          Book Your Trip →
+        </RouterLink>
       </div>
+    </section>
 
-    </div>
-
-  </section>
-
-
-  <!-- CTA -->
-  <section class="bg-slate-50 px-6 py-16 text-center">
-
-    <div class="mx-auto max-w-3xl">
-
-      <h2 class="text-3xl font-bold text-slate-800 md:text-4xl">
-        Ready To Explore Nepal?
-      </h2>
-
-      <p class="mt-4 text-lg text-slate-600">
-        Have your destination in mind? Start planning your adventure with us.
-      </p>
-
-      
-<RouterLink
-  to="/booking"
-  custom
-  v-slot="{ navigate }"
->
-  <AppButton
-    variant="primary"
-    class="mt-7"
-    @click="navigate"
-  >
-    Book Your Trip
-  </AppButton>
-</RouterLink>
-
-    </div>
-
-  </section>
+  </main>
 </template>
