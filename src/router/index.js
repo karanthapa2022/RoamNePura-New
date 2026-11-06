@@ -114,16 +114,18 @@ const router= createRouter({
 },
 ],},],})
 router.beforeEach((to) => {
-    const isAuthenticated = Boolean(
-        sessionStorage.getItem("admin_token")
-    );
+    const token = sessionStorage.getItem("admin_token");
 
     const requiresAuth = to.matched.some(
         (record) => record.meta.requiresAuth
     );
 
-    if (requiresAuth && !isAuthenticated) {
+    if (requiresAuth && !token) {
         return "/admin/login";
+    }
+
+    if (to.path === "/admin/login" && token) {
+        return "/admin/dashboard";
     }
 });
 export default router

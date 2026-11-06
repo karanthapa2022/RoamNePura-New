@@ -1,3 +1,4 @@
+
 <script setup>
 import { ref, onMounted } from "vue";
 
@@ -11,6 +12,53 @@ import {
   getSiteSettings,
   updateSiteSettings,
 } from "../../api/siteSettings";
+
+// General Settings navigation
+const settingsSections = [
+  {
+    number: "01",
+    title: "Admin Profile",
+    description:
+      "Manage your administrator name, email address and account information.",
+    icon: "👤",
+    status: "Profile settings",
+    target: "admin-profile",
+  },
+  {
+    number: "02",
+    title: "Security",
+    description:
+      "Change your admin password and keep your administrator account secure.",
+    icon: "🔐",
+    status: "Account security",
+    target: "admin-security",
+  },
+  {
+    number: "03",
+    title: "Website Information",
+    description:
+      "Manage your website identity, contact details and social media links.",
+    icon: "🌐",
+    status: "Website configuration",
+    target: "website-information",
+  },
+  {
+    number: "04",
+    title: "Notifications",
+    description:
+      "View notification preferences for bookings, inquiries and other activities.",
+    icon: "🔔",
+    status: "Notification preferences",
+    target: "notification-settings",
+  },
+];
+
+function goToSetting(target) {
+  document.getElementById(target)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
 
 // Website Information
 const siteSettings = ref({
@@ -30,60 +78,6 @@ const siteSettingsSaving = ref(false);
 const siteSettingsSuccess = ref("");
 const siteSettingsError = ref("");
 
-// Admin profile
-const profileName = ref("");
-const profileEmail = ref("");
-const profileLoading = ref(false);
-const profileSaving = ref(false);
-const profileSuccess = ref("");
-const profileError = ref("");
-
-// Password
-const currentPassword = ref("");
-const newPassword = ref("");
-const confirmPassword = ref("");
-
-const showPasswords = ref(false);
-const loading = ref(false);
-const successMessage = ref("");
-const errorMessage = ref("");
-
-const settingsSections = [
-  {
-    number: "01",
-    title: "Admin Profile",
-    description:
-      "Manage your administrator name, email address and account information.",
-    icon: "👤",
-    status: "Profile settings",
-  },
-  {
-    number: "02",
-    title: "Security",
-    description:
-      "Change your admin password and keep your administrator account secure.",
-    icon: "🔐",
-    status: "Account security",
-  },
-  {
-    number: "03",
-    title: "Website Information",
-    description:
-      "Manage RoamNePura's contact details, website identity and business information.",
-    icon: "🌐",
-    status: "Website configuration",
-  },
-  {
-    number: "04",
-    title: "Notifications",
-    description:
-      "Manage preferences for booking, inquiry and other administrative notifications.",
-    icon: "🔔",
-    status: "Notification preferences",
-  },
-];
-
-// Load website information
 async function loadSiteSettings() {
   siteSettingsLoading.value = true;
   siteSettingsError.value = "";
@@ -112,7 +106,6 @@ async function loadSiteSettings() {
   }
 }
 
-// Save website information
 async function submitSiteSettings() {
   siteSettingsSuccess.value = "";
   siteSettingsError.value = "";
@@ -159,7 +152,14 @@ async function submitSiteSettings() {
   }
 }
 
-// Load logged-in admin profile
+// Admin Profile
+const profileName = ref("");
+const profileEmail = ref("");
+const profileLoading = ref(false);
+const profileSaving = ref(false);
+const profileSuccess = ref("");
+const profileError = ref("");
+
 async function loadAdminProfile() {
   profileLoading.value = true;
   profileError.value = "";
@@ -179,7 +179,6 @@ async function loadAdminProfile() {
   }
 }
 
-// Save admin profile
 async function submitProfileUpdate() {
   profileSuccess.value = "";
   profileError.value = "";
@@ -222,7 +221,16 @@ async function submitProfileUpdate() {
   }
 }
 
-// Change password
+// Password
+const currentPassword = ref("");
+const newPassword = ref("");
+const confirmPassword = ref("");
+
+const showPasswords = ref(false);
+const loading = ref(false);
+const successMessage = ref("");
+const errorMessage = ref("");
+
 async function submitPasswordChange() {
   successMessage.value = "";
   errorMessage.value = "";
@@ -284,6 +292,7 @@ onMounted(() => {
 
 <template>
   <main class="min-h-screen bg-[#f8f7f2] p-4 sm:p-6 lg:p-8">
+
     <!-- Page Header -->
     <div class="mb-8">
       <p class="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#9b8051]">
@@ -318,7 +327,7 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- General Settings -->
+    <!-- General Settings Navigation -->
     <section>
       <div class="mb-5">
         <h2 class="font-serif text-2xl text-[#193b2b]">
@@ -326,15 +335,17 @@ onMounted(() => {
         </h2>
 
         <p class="mt-1 text-sm text-[#788279]">
-          Choose the settings area you want to configure.
+          Select a settings area to manage its information.
         </p>
       </div>
 
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <article
+        <button
           v-for="item in settingsSections"
           :key="item.number"
-          class="rounded-2xl border border-[#e8e7df] bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#c9b78e] hover:shadow-md"
+          type="button"
+          @click="goToSetting(item.target)"
+          class="w-full cursor-pointer rounded-2xl border border-[#e8e7df] bg-white p-6 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:border-[#c9b78e] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#9b8051]"
         >
           <div class="flex items-start justify-between">
             <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eeeee7] text-2xl">
@@ -354,17 +365,19 @@ onMounted(() => {
             {{ item.description }}
           </p>
 
-          <div class="mt-5 border-t border-[#eeeee7] pt-4">
+          <div class="mt-5 flex items-center justify-between border-t border-[#eeeee7] pt-4">
             <span class="text-xs font-medium uppercase tracking-wider text-[#9b8051]">
               {{ item.status }}
             </span>
+
+            <span class="text-lg text-[#193b2b]">→</span>
           </div>
-        </article>
+        </button>
       </div>
     </section>
 
     <!-- Website Information -->
-    <section class="mt-10">
+    <section id="website-information" class="mt-10 scroll-mt-8">
       <div class="mb-5">
         <h2 class="font-serif text-2xl text-[#193b2b]">
           Website Information
@@ -560,13 +573,18 @@ onMounted(() => {
             </div>
           </div>
 
+          <!-- Save -->
           <div class="border-t border-[#eeeee7] pt-5">
             <button
               type="submit"
               :disabled="siteSettingsSaving"
               class="rounded-xl bg-[#193b2b] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#10271e] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {{ siteSettingsSaving ? "Saving Website Information..." : "Save Website Information" }}
+              {{
+                siteSettingsSaving
+                  ? "Saving Website Information..."
+                  : "Save Website Information"
+              }}
             </button>
           </div>
         </form>
@@ -574,7 +592,7 @@ onMounted(() => {
     </section>
 
     <!-- Admin Profile -->
-    <section class="mt-10">
+    <section id="admin-profile" class="mt-10 scroll-mt-8">
       <div class="mb-5">
         <h2 class="font-serif text-2xl text-[#193b2b]">
           Admin Profile
@@ -620,7 +638,11 @@ onMounted(() => {
           Loading admin profile...
         </div>
 
-        <form v-else @submit.prevent="submitProfileUpdate" class="space-y-5">
+        <form
+          v-else
+          @submit.prevent="submitProfileUpdate"
+          class="space-y-5"
+        >
           <div>
             <label class="mb-2 block text-sm font-medium text-[#193b2b]">
               Admin Name
@@ -659,15 +681,19 @@ onMounted(() => {
               :disabled="profileSaving"
               class="rounded-xl bg-[#193b2b] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#10271e] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {{ profileSaving ? "Saving Profile..." : "Save Profile Changes" }}
+              {{
+                profileSaving
+                  ? "Saving Profile..."
+                  : "Save Profile Changes"
+              }}
             </button>
           </div>
         </form>
       </div>
     </section>
 
-    <!-- Change Password -->
-    <section class="mt-10">
+    <!-- Security & Password -->
+    <section id="admin-security" class="mt-10 scroll-mt-8">
       <div class="mb-5">
         <h2 class="font-serif text-2xl text-[#193b2b]">
           Security & Password
@@ -720,6 +746,7 @@ onMounted(() => {
               :type="showPasswords ? 'text' : 'password'"
               autocomplete="current-password"
               placeholder="Enter your current password"
+              required
               class="w-full rounded-xl border border-[#deded4] bg-[#f8f7f2] px-4 py-3 text-sm outline-none transition focus:border-[#9b8051] focus:ring-2 focus:ring-[#9b8051]/10"
             />
           </div>
@@ -734,6 +761,7 @@ onMounted(() => {
               :type="showPasswords ? 'text' : 'password'"
               autocomplete="new-password"
               placeholder="Enter your new password"
+              required
               class="w-full rounded-xl border border-[#deded4] bg-[#f8f7f2] px-4 py-3 text-sm outline-none transition focus:border-[#9b8051] focus:ring-2 focus:ring-[#9b8051]/10"
             />
           </div>
@@ -748,6 +776,7 @@ onMounted(() => {
               :type="showPasswords ? 'text' : 'password'"
               autocomplete="new-password"
               placeholder="Confirm your new password"
+              required
               class="w-full rounded-xl border border-[#deded4] bg-[#f8f7f2] px-4 py-3 text-sm outline-none transition focus:border-[#9b8051] focus:ring-2 focus:ring-[#9b8051]/10"
             />
           </div>
@@ -774,6 +803,43 @@ onMounted(() => {
       </div>
     </section>
 
+    <!-- Notifications -->
+    <section id="notification-settings" class="mt-10 scroll-mt-8">
+      <div class="mb-5">
+        <h2 class="font-serif text-2xl text-[#193b2b]">
+          Notification Preferences
+        </h2>
+
+        <p class="mt-1 text-sm text-[#788279]">
+          Manage how administrative notifications are handled.
+        </p>
+      </div>
+
+      <div class="max-w-2xl rounded-2xl border border-[#e8e7df] bg-white p-6 shadow-sm sm:p-8">
+        <div class="flex items-start gap-3">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#eeeee7] text-2xl">
+            🔔
+          </div>
+
+          <div>
+            <h3 class="font-serif text-xl text-[#193b2b]">
+              Notification Settings
+            </h3>
+
+            <p class="mt-2 text-sm leading-6 text-[#788279]">
+              Your existing booking and inquiry notifications continue
+              to work as configured. Notification preference controls
+              have not been connected to a settings API yet.
+            </p>
+
+            <p class="mt-3 text-xs text-[#9b8051]">
+              Notification preferences can be configured in a future update.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Information Notice -->
     <section class="mt-8 rounded-xl border border-[#e8dfc9] bg-[#f2eee3] p-5">
       <div class="flex items-start gap-3">
@@ -781,15 +847,17 @@ onMounted(() => {
 
         <div>
           <h3 class="text-sm font-semibold text-[#193b2b]">
-            Account security
+            Account Security
           </h3>
 
           <p class="mt-1 text-sm leading-6 text-[#788279]">
-            Your new password is securely hashed by Laravel before it is saved.
-            You must enter your current password to authorize this change.
+            Your new password is securely hashed by Laravel before it
+            is saved. You must enter your current password to authorize
+            this change.
           </p>
         </div>
       </div>
     </section>
+
   </main>
 </template>
