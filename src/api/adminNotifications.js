@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const API_URL =
@@ -13,11 +12,22 @@ function getAdminHeaders() {
     };
 }
 
-export function getAdminNotifications() {
-    return axios.get(`${API_URL}/admin/notifications`, {
-        headers: getAdminHeaders(),
-    });
+
+export function getAdminNotifications(page = 1, filters = {}) {
+  return axios.get(`${API_URL}/admin/notifications`, {
+    headers: getAdminHeaders(),
+    params: {
+      page,
+      ...(filters.type && filters.type !== "all"
+        ? { type: filters.type }
+        : {}),
+      ...(filters.status && filters.status !== "all"
+        ? { status: filters.status }
+        : {}),
+    },
+  });
 }
+
 
 export function markAdminNotificationAsRead(id) {
     return axios.patch(

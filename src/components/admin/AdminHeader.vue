@@ -30,6 +30,11 @@ let notificationInterval = null;
 
 const hasNotifications = computed(() => notifications.value.length > 0);
 
+// Display only the latest 10 notifications in the dropdown.
+const recentNotifications = computed(() =>
+  notifications.value.slice(0, 10)
+);
+
 function updateAdminName(user) {
   if (user?.name) {
     adminName.value = user.name;
@@ -68,16 +73,22 @@ async function loadNotifications() {
 }
 
 async function openNotification(notification) {
+  const wasUnread = !notification.read_at;
+
   try {
-    await markAdminNotificationAsRead(notification.id);
+    const response = await markAdminNotificationAsRead(notification.id);
 
     notifications.value = notifications.value.map((item) =>
       item.id === notification.id
-        ? { ...item, read_at: new Date().toISOString() }
+        ? { ...item, read_at: item.read_at || new Date().toISOString() }
         : item
     );
 
-    unreadCount.value = Math.max(0, unreadCount.value - 1);
+    if (typeof response.data.unread_count === "number") {
+      unreadCount.value = response.data.unread_count;
+    } else if (wasUnread) {
+      unreadCount.value = Math.max(0, unreadCount.value - 1);
+    }
 
     showNotifications.value = false;
 
@@ -93,26 +104,60 @@ async function openNotification(notification) {
 
 async function markAllAsRead() {
   try {
-    await markAllAdminNotificationsAsRead();
+    const response = await markAllAdminNotificationsAsRead();
 
     notifications.value = notifications.value.map((item) => ({
       ...item,
       read_at: item.read_at || new Date().toISOString(),
     }));
 
-    unreadCount.value = 0;
+    unreadCount.value = response.data.unread_count ?? 0;
   } catch (error) {
     console.error("Unable to mark notifications as read:", error);
   }
 }
 
+// Display relative timestamps such as "5 minutes ago".
 function formatNotificationDate(date) {
   if (!date) return "";
 
-  return new Date(date).toLocaleString([], {
-    dateStyle: "short",
-    timeStyle: "short",
+  const timestamp = new Date(date).getTime();
+
+  if (Number.isNaN(timestamp)) return "";
+
+  const seconds = Math.round((timestamp - Date.now()) / 1000);
+  const absoluteSeconds = Math.abs(seconds);
+
+  const formatter = new Intl.RelativeTimeFormat("en", {
+    numeric: "auto",
   });
+
+  if (absoluteSeconds < 60) {
+    return formatter.format(seconds, "second");
+  }
+
+  if (absoluteSeconds < 3600) {
+    return formatter.format(Math.round(seconds / 60), "minute");
+  }
+
+  if (absoluteSeconds < 86400) {
+    return formatter.format(Math.round(seconds / 3600), "hour");
+  }
+
+  if (absoluteSeconds < 604800) {
+    return formatter.format(Math.round(seconds / 86400), "day");
+  }
+
+  return new Date(date).toLocaleDateString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function viewAllNotifications() {
+  showNotifications.value = false;
+  router.push("/admin/notifications");
 }
 
 onMounted(() => {
@@ -121,7 +166,6 @@ onMounted(() => {
 
   window.addEventListener("admin-profile-updated", handleProfileUpdate);
 
-  // Refresh notifications every 30 seconds.
   notificationInterval = window.setInterval(loadNotifications, 30000);
 });
 
@@ -177,6 +221,7 @@ onUnmounted(() => {
         <button
           @click="showNotifications = !showNotifications"
           aria-label="Notifications"
+          :aria-expanded="showNotifications"
           class="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#dfc99d] bg-white text-[#193b2b] transition hover:bg-[#eeeee7]"
         >
           <svg
@@ -207,6 +252,7 @@ onUnmounted(() => {
           v-if="showNotifications"
           class="absolute right-0 top-14 z-50 w-[340px] max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-[#e8e5dc] bg-white shadow-xl sm:w-[390px]"
         >
+          <!-- Dropdown Header -->
           <div class="flex items-center justify-between border-b border-[#eeeae1] px-4 py-4">
             <div>
               <h3 class="font-semibold text-[#193b2b]">
@@ -227,6 +273,7 @@ onUnmounted(() => {
             </button>
           </div>
 
+          <!-- Notification List -->
           <div class="max-h-[380px] overflow-y-auto">
 
             <div
@@ -241,16 +288,18 @@ onUnmounted(() => {
               class="px-4 py-10 text-center"
             >
               <div class="mb-2 text-3xl">🔔</div>
+
               <p class="text-sm font-medium text-[#193b2b]">
                 You're all caught up!
               </p>
+
               <p class="mt-1 text-xs text-slate-500">
                 New bookings and inquiries will appear here.
               </p>
             </div>
 
             <button
-              v-for="notification in notifications"
+              v-for="notification in recentNotifications"
               :key="notification.id"
               @click="openNotification(notification)"
               class="flex w-full gap-3 border-b border-[#f0eee8] px-4 py-4 text-left transition hover:bg-[#f8f7f2]"
@@ -258,6 +307,7 @@ onUnmounted(() => {
                 'bg-[#f8f7f2]': !notification.read_at,
               }"
             >
+              <!-- Notification Icon -->
               <div
                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                 :class="
@@ -269,11 +319,13 @@ onUnmounted(() => {
                 <span v-if="notification.data?.type === 'booking'">
                   ✈
                 </span>
+
                 <span v-else>
                   ✉
                 </span>
               </div>
 
+              <!-- Notification Details -->
               <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-2">
                   <p class="text-sm font-semibold text-[#193b2b]">
@@ -297,12 +349,13 @@ onUnmounted(() => {
             </button>
           </div>
 
+          <!-- Dropdown Footer -->
           <div class="border-t border-[#eeeae1] px-4 py-3">
             <button
-              @click="showNotifications = false; router.push('/admin/bookings')"
-              class="w-full text-center text-xs font-semibold text-[#193b2b] hover:text-[#9b8051]"
+              @click="viewAllNotifications"
+              class="w-full text-center text-xs font-semibold text-[#193b2b] transition hover:text-[#9b8051]"
             >
-              View Bookings
+              View All Notifications →
             </button>
           </div>
         </div>

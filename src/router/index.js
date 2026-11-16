@@ -18,6 +18,7 @@ import AdminTours from "../views/admin/AdminTours.vue";
 import AdminTourForm from "../views/admin/AdminTourForm.vue";
 import TourDetails from "../views/public/tours/TourDetails.vue";
 import AdminSettings from "../views/admin/AdminSettings.vue";
+import AdminNotifications from "../views/admin/AdminNotifications.vue";
 
 const router= createRouter({
     history: createWebHistory(),
@@ -78,6 +79,10 @@ const router= createRouter({
         {
   path: "dashboard",
   component: AdminDashboard,
+},
+{
+  path: "notifications",
+  component: AdminNotifications,
 },
 {
   path: "destinations",
