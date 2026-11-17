@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
@@ -30,23 +29,7 @@ const pagination = ref({
 
 let refreshInterval = null;
 
-const filteredNotifications = computed(() => {
-  return notifications.value.filter((notification) => {
-    const type = notification.data?.type;
-
-    const matchesType =
-      typeFilter.value === "all" || type === typeFilter.value;
-
-    const isRead = Boolean(notification.read_at);
-
-    const matchesRead =
-      readFilter.value === "all" ||
-      (readFilter.value === "read" && isRead) ||
-      (readFilter.value === "unread" && !isRead);
-
-    return matchesType && matchesRead;
-  });
-});
+const filteredNotifications = computed(() => notifications.value);
 
 async function loadNotifications(page = currentPage.value) {
   if (loading.value) return;
