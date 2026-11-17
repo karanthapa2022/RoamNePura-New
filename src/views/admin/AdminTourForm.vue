@@ -6,6 +6,7 @@ import {
   createAdminTour,
   updateAdminTour,
 } from "../../api/adminTours";
+import { getAdminDestinations } from "../../api/adminDestinations";
 
 const route = useRoute();
 const router = useRouter();
@@ -24,7 +25,21 @@ const galleryPreviews = ref([]);
 
 const existingGallery = ref([]);
 
+const destinations = ref([]);
+const loadDestinations = async () => {
+  try {
+    const response = await getAdminDestinations();
+    destinations.value = Array.isArray(response.data)
+  ? response.data
+  : response.data.data || [];
+  } catch (err) {
+    console.error("Load destinations error:", err);
+    error.value = "Unable to load destinations.";
+  }
+};
+
 const form = ref({
+  destination_id: "",
   name: "",
   slug: "",
   description: "",
@@ -107,6 +122,7 @@ const loadTour = async () => {
     const tour = response.data;
 
     form.value = {
+      destination_id: tour.destination_id || "",
       name: tour.name || "",
       slug: tour.slug || "",
       description: tour.description || "",
@@ -149,7 +165,7 @@ const submitTour = async () => {
 
   try {
     const data = new FormData();
-
+    data.append("destination_id", form.value.destination_id || "");
     data.append("name", form.value.name);
     data.append("slug", form.value.slug);
     data.append("description", form.value.description);
@@ -202,7 +218,10 @@ const submitTour = async () => {
   }
 };
 
-onMounted(loadTour);
+onMounted(async () => {
+  await loadDestinations();
+  await loadTour();
+});
 </script>
 
 <template>
@@ -250,6 +269,30 @@ onMounted(loadTour);
         </h3>
 
         <div class="mt-6 grid gap-5 md:grid-cols-2">
+          <label class="block md:col-span-2">
+  <span class="mb-2 block text-sm font-medium text-[#193b2b]">
+    Destination
+  </span>
+
+  <select
+    v-model="form.destination_id"
+    class="w-full rounded-xl border border-[#e7e3da] bg-white px-4 py-3 outline-none focus:border-[#55745c]"
+  >
+    <option value="">Select a destination (optional)</option>
+
+    <option
+      v-for="destination in destinations"
+      :key="destination.id"
+      :value="destination.id"
+    >
+      {{ destination.name }}
+    </option>
+  </select>
+
+  <p class="mt-2 text-xs text-[#6b756e]">
+    Select the destination where this tour takes place.
+  </p>
+</label>
           <label class="block">
             <span class="mb-2 block text-sm font-medium text-[#193b2b]">
               Tour Name *

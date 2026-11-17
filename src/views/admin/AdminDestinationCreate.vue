@@ -13,6 +13,8 @@ const form = ref({
   slug: "",
   description: "",
   location: "",
+  latitude: "",
+  longitude: "",
   best_time: "",
   duration: "",
   highlights: "",
@@ -31,6 +33,8 @@ const handleSubmit = async () => {
     formData.append("slug", form.value.slug);
     formData.append("description", form.value.description);
     formData.append("location", form.value.location);
+    formData.append("latitude", form.value.latitude);
+    formData.append("longitude", form.value.longitude);
     formData.append("best_time", form.value.best_time);
     formData.append("duration", form.value.duration);
     formData.append("highlights", form.value.highlights);
@@ -193,6 +197,55 @@ if (err.response?.status === 422) {
           </div>
 
         </div>
+
+        <!-- Map Coordinates -->
+<div>
+  <h3 class="text-lg font-semibold text-[#1c2a22]">
+    Google Maps Coordinates
+  </h3>
+
+  <p class="mt-1 text-sm text-[#6b756e]">
+    Enter the exact coordinates of this destination.
+  </p>
+
+  <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div>
+      <label class="block text-sm font-medium text-[#1c2a22] mb-2">
+        Latitude
+      </label>
+
+      <input
+        v-model="form.latitude"
+        type="number"
+        step="any"
+        min="-90"
+        max="90"
+        placeholder="e.g. 27.9881"
+        class="w-full px-3.5 py-2.5 rounded-[10px] border border-[#e7e3da] bg-white text-sm outline-none focus:border-[#1f5c3f]"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-[#1c2a22] mb-2">
+        Longitude
+      </label>
+
+      <input
+        v-model="form.longitude"
+        type="number"
+        step="any"
+        min="-180"
+        max="180"
+        placeholder="e.g. 86.9250"
+        class="w-full px-3.5 py-2.5 rounded-[10px] border border-[#e7e3da] bg-white text-sm outline-none focus:border-[#1f5c3f]"
+      />
+    </div>
+  </div>
+
+  <p class="mt-2 text-xs text-[#6b756e]">
+    Both coordinates are optional. You can add them later.
+  </p>
+</div>
 
         <!-- Best Time -->
         <div>

@@ -18,6 +18,8 @@ const form = ref({
   slug: "",
   description: "",
   location: "",
+  latitude: "",
+  longitude: "",
   best_time: "",
   duration: "",
   highlights: "",
@@ -55,6 +57,8 @@ const fetchDestination = async () => {
       slug: destination.slug || "",
       description: destination.description || "",
       location: destination.location || "",
+      latitude: destination.latitude ?? "",
+      longitude: destination.longitude ?? "",
       best_time: destination.best_time || "",
       duration: destination.duration || "",
       highlights: destination.highlights || "",
@@ -86,6 +90,8 @@ const updateDestination = async () => {
     formData.append("slug", form.value.slug);
     formData.append("description", form.value.description);
     formData.append("location", form.value.location);
+    formData.append("latitude", form.value.latitude);
+    formData.append("longitude", form.value.longitude);
     formData.append("best_time", form.value.best_time);
     formData.append("duration", form.value.duration);
     formData.append("highlights", form.value.highlights);
@@ -243,6 +249,40 @@ onMounted(() => {
               class="mt-2 w-full rounded-[10px] border border-[#e7e3da] px-3 py-2.5 text-sm outline-none focus:border-[#1f5c3f] focus:ring-3 focus:ring-[#e6f0ea]"
             />
           </div>
+
+          <!-- Latitude -->
+<div>
+  <label class="block text-sm font-medium text-[#1c2a22]">
+    Latitude
+  </label>
+
+  <input
+    v-model="form.latitude"
+    type="number"
+    step="any"
+    min="-90"
+    max="90"
+    placeholder="e.g. 27.9881"
+    class="mt-2 w-full rounded-[10px] border border-[#e7e3da] px-3 py-2.5 text-sm outline-none focus:border-[#1f5c3f]"
+  />
+</div>
+
+<!-- Longitude -->
+<div>
+  <label class="block text-sm font-medium text-[#1c2a22]">
+    Longitude
+  </label>
+
+  <input
+    v-model="form.longitude"
+    type="number"
+    step="any"
+    min="-180"
+    max="180"
+    placeholder="e.g. 86.9250"
+    class="mt-2 w-full rounded-[10px] border border-[#e7e3da] px-3 py-2.5 text-sm outline-none focus:border-[#1f5c3f]"
+  />
+</div>
 
           <!-- Best Time -->
           <div>
