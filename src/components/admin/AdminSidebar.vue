@@ -19,6 +19,7 @@ const navigation = [
   { name: "Tours", path: "/admin/tours", icon: "◇" },
   { name: "Bookings", path: "/admin/bookings", icon: "▣" },
   { name: "Inquiries", path: "/admin/inquiries", icon: "✉" },
+  { name: "Reviews", path: "/admin/reviews", icon: "★" },
   { name: "Settings", path: "/admin/settings", icon: "⚙" },
 ];
 

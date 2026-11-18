@@ -101,6 +101,14 @@ onMounted(() => {
     </button>
 </div>
 
+<!-- Status Update Error -->
+<div
+    v-if="statusError"
+    class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+>
+    {{ statusError }}
+</div>
+
         <!-- Loading -->
         <div
             v-if="loading"
@@ -294,12 +302,6 @@ onMounted(() => {
                 
             </div>
         </div>
-        <div
-    v-if="statusError"
-    class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
->
-    {{ statusError }}
-</div>
         <!-- Full Inquiry Modal -->
 <div
     v-if="showInquiryModal && selectedInquiry"

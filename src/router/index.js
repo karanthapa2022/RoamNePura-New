@@ -19,6 +19,7 @@ import AdminTourForm from "../views/admin/AdminTourForm.vue";
 import TourDetails from "../views/public/tours/TourDetails.vue";
 import AdminSettings from "../views/admin/AdminSettings.vue";
 import AdminNotifications from "../views/admin/AdminNotifications.vue";
+import AdminReviews from "../views/admin/AdminReviews.vue";
 
 const router= createRouter({
     history: createWebHistory(),
@@ -60,6 +61,10 @@ const router= createRouter({
             path:'/booking',
             component: Booking,
         },
+        {
+    path: '/bookings',
+    redirect: '/booking',
+},
         {
     path: "/admin/login",
     component: AdminLogin,
@@ -113,6 +118,10 @@ const router= createRouter({
     component: AdminBookings,
 },
 { path: "inquiries", component: AdminInquiries },
+{
+    path: "reviews",
+    component: AdminReviews,
+},
 {
   path: "settings",
   component: AdminSettings,

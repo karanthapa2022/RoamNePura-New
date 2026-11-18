@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import {
   getAdminNotifications,
@@ -28,8 +28,6 @@ const pagination = ref({
 });
 
 let refreshInterval = null;
-
-const filteredNotifications = computed(() => notifications.value);
 
 async function loadNotifications(page = currentPage.value) {
   if (loading.value) return;
@@ -289,7 +287,7 @@ onUnmounted(() => {
 
     <!-- Empty State -->
     <div
-      v-else-if="!loading && filteredNotifications.length === 0"
+      v-else-if="!loading && notifications.length === 0"
       class="rounded-2xl border border-[#e8e5dc] bg-white px-5 py-16 text-center"
     >
       <div class="mb-3 text-4xl">🔔</div>
@@ -309,7 +307,7 @@ onUnmounted(() => {
       class="overflow-hidden rounded-2xl border border-[#e8e5dc] bg-white"
     >
       <button
-        v-for="notification in filteredNotifications"
+        v-for="notification in notifications"
         :key="notification.id"
         @click="openNotification(notification)"
         class="flex w-full gap-4 border-b border-[#eeeae1] p-5 text-left transition last:border-b-0 hover:bg-[#faf9f5]"

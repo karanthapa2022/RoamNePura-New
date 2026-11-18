@@ -17,14 +17,7 @@ const destinations = ref([]);
 const availableTours = ref([]);
 const destinationsLoading = ref(false);
 
-const tours = {
-  "everest-base-camp": "Everest Base Camp",
-  "annapurna-circuit": "Annapurna Circuit",
-  "upper-mustang": "Upper Mustang",
-  "pokhara-adventure": "Pokhara Adventure",
-  "chitwan-safari": "Chitwan Safari",
-  "kathmandu-cultural-tour": "Kathmandu Cultural Tour",
-};
+const tours = {};
 
 const initialSelection =
   route.query.destination ||
@@ -54,24 +47,34 @@ const minimumDate = [
 
 const destinationOptions = computed(() => {
   const names = destinations.value.map(
-    (destination) => destination.name
+    destination => destination.name
   );
 
-  // Include dynamically loaded database tours.
-  availableTours.value.forEach((tour) => {
+  availableTours.value.forEach(tour => {
+    const linkedDestination = tour.destination;
+
+    // Skip tours linked to unpublished destinations.
+    if (
+      linkedDestination &&
+      Number(linkedDestination.is_published) !== 1
+    ) {
+      return;
+    }
+
+    // Skip tours already represented by a published destination.
+    if (
+      linkedDestination &&
+      destinations.value.some(
+        destination => destination.id === linkedDestination.id
+      )
+    ) {
+      return;
+    }
+
     names.push(tour.name);
   });
 
-  // Keep older tour links working.
-  Object.values(tours).forEach((tour) => {
-    names.push(tour);
-  });
-
-  if (selectedTour.value) {
-    names.push(selectedTour.value);
-  }
-
-  return [...new Set(names)];
+  return [...new Set(names.filter(Boolean))];
 });
 
 const selectedDestination = computed(() => {

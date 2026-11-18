@@ -51,8 +51,8 @@ const loadDestinations = async () => {
   try {
     const response = await getDestinations()
     destinations.value = response.data.filter(
-      destination => destination.is_published
-    )
+  destination => Number(destination.is_published) === 1
+)
 
     const requestedDestination = route.query.destination
 

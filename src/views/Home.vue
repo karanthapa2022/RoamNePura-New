@@ -1,12 +1,27 @@
-
 <script setup>
 import { ref, onMounted } from 'vue'
+import { getReviews, submitReview } from '../api/reviews'
 import { RouterLink } from 'vue-router'
 import { getDestinations } from '../api/destinations'
 
 const destinations = ref([])
 const loading = ref(true)
 const error = ref('')
+const reviews = ref([])
+const reviewsLoading = ref(true)
+const reviewError = ref('')
+const showReviewForm = ref(false)
+const submittingReview = ref(false)
+const reviewSuccess = ref('')
+
+const reviewForm = ref({
+  name: '',
+  email: '',
+  tour: '',
+  rating: 5,
+  comment: '',
+  website: ''
+})
 
 const API_ORIGIN = 'http://127.0.0.1:8000'
 
@@ -49,8 +64,57 @@ async function fetchDestinations() {
     loading.value = false
   }
 }
+async function fetchReviews() {
+  reviewsLoading.value = true
+  reviewError.value = ''
 
-onMounted(fetchDestinations)
+  try {
+    const response = await getReviews()
+    reviews.value = Array.isArray(response.data) ? response.data : []
+  } catch (err) {
+    console.error('Failed to load reviews:', err)
+    reviewError.value = 'Unable to load customer reviews right now.'
+  } finally {
+    reviewsLoading.value = false
+  }
+}
+
+async function handleReviewSubmit() {
+  submittingReview.value = true
+  reviewError.value = ''
+  reviewSuccess.value = ''
+
+  try {
+    const response = await submitReview(reviewForm.value)
+
+    reviewSuccess.value =
+      response.data.message || 'Your review was submitted successfully.'
+
+    reviewForm.value = {
+      name: '',
+      email: '',
+      tour: '',
+      rating: 5,
+      comment: '',
+      website: ''
+    }
+
+    showReviewForm.value = false
+  } catch (err) {
+    console.error('Review submission failed:', err)
+
+    reviewError.value =
+      err.response?.data?.message ||
+      'Unable to submit your review. Please try again.'
+  } finally {
+    submittingReview.value = false
+  }
+}
+
+onMounted(() => {
+  fetchDestinations()
+  fetchReviews()
+})
 </script>
 
 <template>
@@ -388,6 +452,169 @@ onMounted(fetchDestinations)
         </div>
       </div>
     </section>
+
+
+<!-- CUSTOMER REVIEWS -->
+<section class="bg-[#eaece3] px-6 py-24 md:px-12">
+  <div class="mx-auto max-w-7xl">
+
+    <div class="mb-12 text-center">
+      <p class="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#a47b45]">
+        Stories from our travelers
+      </p>
+
+      <h2 class="font-serif text-4xl font-medium text-[#193d32] md:text-6xl">
+        Memories worth <span class="italic">sharing.</span>
+      </h2>
+
+      <p class="mx-auto mt-5 max-w-xl leading-7 text-[#65736a]">
+        Read about the experiences of travelers who explored Nepal with us.
+      </p>
+    </div>
+
+    <div v-if="reviewsLoading" class="py-12 text-center text-[#65736a]">
+      Loading customer reviews...
+    </div>
+
+    <div v-else-if="reviewError && !reviews.length"
+      class="py-12 text-center text-red-700">
+      {{ reviewError }}
+    </div>
+
+    <div v-else-if="reviews.length"
+      class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+
+      <article
+        v-for="review in reviews"
+        :key="review.id"
+        class="rounded-3xl bg-white p-8 shadow-sm">
+
+        <div class="mb-5 flex gap-1 text-xl text-[#c18d42]">
+          <span v-for="star in 5" :key="star">
+            {{ star <= Number(review.rating) ? '★' : '☆' }}
+          </span>
+        </div>
+
+        <p class="leading-7 text-[#65736a]">
+          "{{ review.comment }}"
+        </p>
+
+        <div class="mt-7 border-t border-[#193d32]/10 pt-5">
+          <h3 class="font-semibold text-[#193d32]">
+            {{ review.name }}
+          </h3>
+          <p class="mt-1 text-xs text-[#a47b45]">
+            {{ review.tour }}
+          </p>
+        </div>
+      </article>
+
+    </div>
+
+    <div v-else class="rounded-3xl bg-white px-6 py-12 text-center">
+      <p class="font-serif text-2xl text-[#193d32]">
+        Be the first to share your experience.
+      </p>
+      <p class="mt-3 text-sm text-[#65736a]">
+        Your travel story could inspire someone else's journey.
+      </p>
+    </div>
+
+    <div v-if="reviewSuccess"
+      class="mt-8 rounded-xl bg-white p-4 text-center text-sm text-[#193d32]">
+      {{ reviewSuccess }}
+    </div>
+
+    <div class="mt-10 text-center">
+      <button
+        @click="showReviewForm = !showReviewForm"
+        class="rounded-full bg-[#193d32] px-8 py-4 text-sm font-semibold text-white transition hover:bg-[#245744]">
+        {{ showReviewForm ? 'Close Form' : 'Add Your Review' }}
+      </button>
+    </div>
+
+    <form
+      v-if="showReviewForm"
+      @submit.prevent="handleReviewSubmit"
+      class="mx-auto mt-10 max-w-2xl space-y-5 rounded-3xl bg-white p-7 shadow-sm md:p-10">
+
+      <!-- Honeypot field to catch basic spam bots -->
+<div
+  class="absolute -left-[9999px]"
+  aria-hidden="true"
+>
+  <label for="review-website">Leave this field empty</label>
+  <input
+    id="review-website"
+    v-model="reviewForm.website"
+    type="text"
+    name="website"
+    tabindex="-1"
+    autocomplete="off"
+  />
+</div>
+      <h3 class="font-serif text-3xl text-[#193d32]">
+        Share Your Experience
+      </h3>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium">Your Name</label>
+        <input v-model="reviewForm.name" required maxlength="255"
+          class="w-full rounded-xl border border-gray-200 p-3 outline-none focus:border-[#193d32]"
+          placeholder="Enter your name" />
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium">Email Address</label>
+        <input v-model="reviewForm.email" type="email" required maxlength="255"
+          class="w-full rounded-xl border border-gray-200 p-3 outline-none focus:border-[#193d32]"
+          placeholder="Enter your email" />
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium">Tour Name</label>
+        <input v-model="reviewForm.tour" required maxlength="255"
+          class="w-full rounded-xl border border-gray-200 p-3 outline-none focus:border-[#193d32]"
+          placeholder="Which tour did you experience?" />
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium">Your Rating</label>
+        <select v-model.number="reviewForm.rating" required
+          class="w-full rounded-xl border border-gray-200 p-3 outline-none focus:border-[#193d32]">
+          <option :value="5">★★★★★ - Excellent</option>
+          <option :value="4">★★★★ - Very Good</option>
+          <option :value="3">★★★ - Good</option>
+          <option :value="2">★★ - Fair</option>
+          <option :value="1">★ - Poor</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium">Your Review</label>
+        <textarea v-model="reviewForm.comment" required maxlength="5000" rows="5"
+          class="w-full rounded-xl border border-gray-200 p-3 outline-none focus:border-[#193d32]"
+          placeholder="Tell us about your experience..."></textarea>
+      </div>
+
+      <p v-if="reviewError" class="text-sm text-red-600">
+        {{ reviewError }}
+      </p>
+
+      <button type="submit" :disabled="submittingReview"
+        class="w-full rounded-full bg-[#193d32] px-8 py-4 text-sm font-semibold text-white transition hover:bg-[#245744] disabled:cursor-not-allowed disabled:opacity-60">
+        {{ submittingReview ? 'Submitting...' : 'Submit Review' }}
+      </button>
+
+      <p class="text-center text-xs text-[#65736a]">
+        Your review will appear publicly after admin approval.
+      </p>
+
+    </form>
+
+  </div>
+</section>
+
 
   </main>
 </template>

@@ -1,7 +1,6 @@
-
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { getAdminProfile } from "../../api/adminSettings";
 import {
   getAdminNotifications,
@@ -18,6 +17,7 @@ defineProps({
 
 const emit = defineEmits(["menu"]);
 const router = useRouter();
+const route = useRoute();
 
 const adminName = ref("Administrator");
 
@@ -160,13 +160,32 @@ function viewAllNotifications() {
   router.push("/admin/notifications");
 }
 
+watch(
+  () => route.path,
+  (path) => {
+    if (notificationInterval) {
+      window.clearInterval(notificationInterval);
+      notificationInterval = null;
+    }
+
+    // The notifications page handles its own polling.
+    if (path !== "/admin/notifications") {
+      loadNotifications();
+      notificationInterval = window.setInterval(loadNotifications, 30000);
+    }
+  }
+);
+
 onMounted(() => {
   loadAdminName();
-  loadNotifications();
+
+  // Don't duplicate notification requests on the notifications page.
+  if (route.path !== "/admin/notifications") {
+    loadNotifications();
+    notificationInterval = window.setInterval(loadNotifications, 30000);
+  }
 
   window.addEventListener("admin-profile-updated", handleProfileUpdate);
-
-  notificationInterval = window.setInterval(loadNotifications, 30000);
 });
 
 onUnmounted(() => {
@@ -174,8 +193,10 @@ onUnmounted(() => {
 
   if (notificationInterval) {
     window.clearInterval(notificationInterval);
+    notificationInterval = null;
   }
 });
+
 </script>
 
 <template>

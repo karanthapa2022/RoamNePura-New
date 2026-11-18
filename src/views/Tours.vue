@@ -148,7 +148,7 @@ const filteredTours = computed(() => {
 
 // Map follows the filtered tours
 const mapDestinations = computed(() => {
-  const destinations = new Map()
+  const locationMap = new Map()
 
   filteredTours.value.forEach(tour => {
     const destination = tour.destination
@@ -166,8 +166,8 @@ const mapDestinations = computed(() => {
     const key = destination.id ??
       `${destination.latitude}-${destination.longitude}`
 
-    if (!destinations.has(key)) {
-      destinations.set(key, {
+    if (!locationMap.has(key)) {
+      locationMap.set(key, {
         id: destination.id,
         name: destination.name,
         description: destination.location || '',
@@ -177,7 +177,7 @@ const mapDestinations = computed(() => {
     }
   })
 
-  return Array.from(destinations.values())
+  return Array.from(locationMap.values())
 })
 
 // Clear all filters

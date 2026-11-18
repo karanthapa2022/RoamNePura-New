@@ -66,8 +66,6 @@ const fetchDestination = async () => {
     };
 
     existingImage.value = destination.image || null;
-
-    console.log("Admin destination:", destination);
   } catch (err) {
     console.error(err);
 
@@ -78,6 +76,17 @@ const fetchDestination = async () => {
     loading.value = false;
   }
 };
+const API_ORIGIN = "http://127.0.0.1:8000";
+
+function getDestinationImage(image) {
+    if (!image) return "";
+
+    if (image.startsWith("http")) {
+        return image;
+    }
+
+    return `${API_ORIGIN}/storage/${image.replace(/^\/+/, "")}`;
+}
 
 const updateDestination = async () => {
   error.value = "";
@@ -337,7 +346,7 @@ onMounted(() => {
     </p>
 
     <img
-      :src="`http://127.0.0.1:8000/storage/${existingImage}`"
+      :src="getDestinationImage(existingImage)"
       alt="Current destination"
       class="h-40 w-64 rounded-lg object-cover border border-[#e7e3da]"
     />

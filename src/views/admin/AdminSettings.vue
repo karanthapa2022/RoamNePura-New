@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, onMounted } from "vue";
 
@@ -227,7 +226,7 @@ const newPassword = ref("");
 const confirmPassword = ref("");
 
 const showPasswords = ref(false);
-const loading = ref(false);
+const passwordLoading = ref(false);
 const successMessage = ref("");
 const errorMessage = ref("");
 
@@ -256,7 +255,7 @@ async function submitPasswordChange() {
     return;
   }
 
-  loading.value = true;
+  passwordLoading.value = true;
 
   try {
     const response = await changeAdminPassword({
@@ -280,7 +279,7 @@ async function submitPasswordChange() {
         ? Object.values(validationErrors).flat().join(" ")
         : "Unable to change password. Please try again.");
   } finally {
-    loading.value = false;
+    passwordLoading.value = false;
   }
 }
 
@@ -793,10 +792,10 @@ onMounted(() => {
           <div class="border-t border-[#eeeee7] pt-5">
             <button
               type="submit"
-              :disabled="loading"
+              :disabled="passwordLoading"
               class="rounded-xl bg-[#193b2b] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#10271e] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {{ loading ? "Updating Password..." : "Update Password" }}
+              {{ passwordLoading ? "Updating Password..." : "Update Password" }}
             </button>
           </div>
         </form>

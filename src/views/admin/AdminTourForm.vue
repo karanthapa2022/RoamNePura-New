@@ -153,11 +153,45 @@ const loadTour = async () => {
   }
 };
 
+
 const submitTour = async () => {
   error.value = "";
 
-  if (!form.value.name.trim() || !form.value.slug.trim()) {
-    error.value = "Tour name and slug are required.";
+  // Required field validation
+  if (!form.value.name.trim()) {
+    error.value = "Tour name is required.";
+    return;
+  }
+
+  if (!form.value.slug.trim()) {
+    error.value = "Tour slug is required.";
+    return;
+  }
+
+  if (!form.value.description.trim()) {
+    error.value = "Tour description is required.";
+    return;
+  }
+
+  if (!form.value.duration.trim()) {
+    error.value = "Tour duration is required.";
+    return;
+  }
+
+  if (!form.value.difficulty) {
+    error.value = "Please select a difficulty level.";
+    return;
+  }
+
+  // Price validation
+  const price = Number(form.value.price);
+
+  if (
+    form.value.price === "" ||
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    error.value = "Please enter a valid price greater than or equal to 0.";
     return;
   }
 
@@ -176,7 +210,6 @@ const submitTour = async () => {
     data.append("highlights", form.value.highlights || "");
     data.append("is_published", form.value.is_published ? "1" : "0");
 
-    // Send itinerary as Laravel-compatible nested fields.
     form.value.itinerary.forEach((item, index) => {
       data.append(`itinerary[${index}][day]`, item.day || "");
       data.append(`itinerary[${index}][title]`, item.title || "");
@@ -217,6 +250,7 @@ const submitTour = async () => {
     saving.value = false;
   }
 };
+
 
 onMounted(async () => {
   await loadDestinations();
@@ -302,6 +336,7 @@ onMounted(async () => {
               v-model="form.name"
               @input="makeSlug"
               required
+              maxlength="255"
               class="w-full rounded-xl border border-[#e7e3da] px-4 py-3 outline-none focus:border-[#55745c]"
               placeholder="Everest Base Camp"
             />
@@ -315,6 +350,7 @@ onMounted(async () => {
             <input
               v-model="form.slug"
               required
+              maxlength="255"
               class="w-full rounded-xl border border-[#e7e3da] px-4 py-3 outline-none focus:border-[#55745c]"
               placeholder="everest-base-camp"
             />
@@ -328,6 +364,7 @@ onMounted(async () => {
             <input
               v-model="form.duration"
               required
+              maxlength="100"
               class="w-full rounded-xl border border-[#e7e3da] px-4 py-3 outline-none focus:border-[#55745c]"
               placeholder="14 Days"
             />
@@ -388,6 +425,7 @@ onMounted(async () => {
             v-model="form.description"
             rows="6"
             required
+            maxlength="5000"
             class="w-full rounded-xl border border-[#e7e3da] px-4 py-3 outline-none focus:border-[#55745c]"
             placeholder="Describe the destination, experience, landscapes, culture and what visitors can expect..."
           ></textarea>

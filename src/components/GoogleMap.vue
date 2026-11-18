@@ -27,6 +27,7 @@ const mapElement = ref(null)
 
 let map = null
 let markerLayer = null
+let resizeObserver = null
 
 const defaultIcon = L.icon({
   iconUrl: markerIcon,
@@ -125,9 +126,11 @@ onMounted(async () => {
 
   updateMarkers()
 
-  setTimeout(() => {
-    map?.invalidateSize()
-  }, 200)
+  resizeObserver = new ResizeObserver(() => {
+  map?.invalidateSize()
+})
+
+resizeObserver.observe(mapElement.value)
 })
 
 watch(
@@ -135,8 +138,12 @@ watch(
   () => updateMarkers(),
   { deep: true }
 )
-
 onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+
   if (map) {
     map.remove()
     map = null
