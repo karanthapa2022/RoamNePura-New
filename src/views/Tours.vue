@@ -5,6 +5,11 @@ import AppButton from '../components/ui/AppButton.vue'
 import GoogleMap from '../components/GoogleMap.vue'
 
 const searchQuery = ref('')
+const selectedDestination = ref('')
+const selectedDifficulty = ref('')
+const selectedDuration = ref('')
+const sortBy = ref('')
+
 const tours = ref([])
 const loading = ref(true)
 const error = ref('')
@@ -39,24 +44,109 @@ const formatPrice = (price) => {
   return `From $${Number(price).toLocaleString()}`
 }
 
+// Get unique destinations from available tours
+const destinations = computed(() => {
+  const uniqueDestinations = new Map()
+
+  tours.value.forEach(tour => {
+    const destination = tour.destination
+
+    if (destination?.id) {
+      uniqueDestinations.set(destination.id, destination)
+    }
+  })
+
+  return Array.from(uniqueDestinations.values())
+})
+
+// Convert duration text into an approximate number of days
+const getDurationInDays = (duration) => {
+  if (!duration) return null
+
+  const value = String(duration).trim().toLowerCase()
+
+  if (value.includes('half day')) return 0.5
+  if (value.includes('full day')) return 1
+
+  const match = value.match(/(\d+(?:\.\d+)?)/)
+
+  if (!match) return null
+
+  const number = Number(match[1])
+
+  if (value.includes('month')) return number * 30
+  if (value.includes('week')) return number * 7
+  if (value.includes('day')) return number
+
+  return null
+}
+
+// Apply search and all filters
 const filteredTours = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
 
-  if (!query) return tours.value
+  let result = tours.value.filter(tour => {
+    const destinationName = tour.destination?.name || ''
+    const destinationLocation = tour.destination?.location || ''
 
-  return tours.value.filter(tour =>
-    [
+    const searchableValues = [
       tour.name,
       tour.description,
       tour.difficulty,
       tour.duration,
       tour.category,
-      tour.highlights
+      tour.highlights,
+      destinationName,
+      destinationLocation
     ]
-      .filter(Boolean)
-      .some(value => String(value).toLowerCase().includes(query))
-  )
+
+    const matchesSearch =
+      !query ||
+      searchableValues
+        .filter(Boolean)
+        .some(value => String(value).toLowerCase().includes(query))
+
+    const matchesDestination =
+      !selectedDestination.value ||
+      String(tour.destination?.id) === selectedDestination.value
+
+    const matchesDifficulty =
+      !selectedDifficulty.value ||
+      tour.difficulty === selectedDifficulty.value
+
+    const days = getDurationInDays(tour.duration)
+
+    let matchesDuration = true
+
+    if (selectedDuration.value === 'short') {
+      matchesDuration = days !== null && days <= 3
+    } else if (selectedDuration.value === 'medium') {
+      matchesDuration = days !== null && days > 3 && days <= 14
+    } else if (selectedDuration.value === 'long') {
+      matchesDuration = days !== null && days > 14
+    } else if (selectedDuration.value === 'other') {
+      matchesDuration = days === null
+    }
+
+    return (
+      matchesSearch &&
+      matchesDestination &&
+      matchesDifficulty &&
+      matchesDuration
+    )
+  })
+
+  // Sort by price
+  if (sortBy.value === 'price_low') {
+    result.sort((a, b) => Number(a.price) - Number(b.price))
+  } else if (sortBy.value === 'price_high') {
+    result.sort((a, b) => Number(b.price) - Number(a.price))
+  }
+
+  return result
 })
+
+// Map follows the filtered tours
 const mapDestinations = computed(() => {
   const destinations = new Map()
 
@@ -90,6 +180,25 @@ const mapDestinations = computed(() => {
   return Array.from(destinations.values())
 })
 
+// Clear all filters
+const clearFilters = () => {
+  searchQuery.value = ''
+  selectedDestination.value = ''
+  selectedDifficulty.value = ''
+  selectedDuration.value = ''
+  sortBy.value = ''
+}
+
+const hasActiveFilters = computed(() => {
+  return (
+    searchQuery.value ||
+    selectedDestination.value ||
+    selectedDifficulty.value ||
+    selectedDuration.value ||
+    sortBy.value
+  )
+})
+
 const scrollToTours = () => {
   document.getElementById('explore-tours')?.scrollIntoView({
     behavior: 'smooth',
@@ -99,6 +208,7 @@ const scrollToTours = () => {
 
 onMounted(fetchTours)
 </script>
+
 
 <template>
   <main class="bg-[#f8f7f2]">
@@ -167,22 +277,96 @@ onMounted(fetchTours)
           </p>
         </div>
 
-        <!-- Search -->
-        <div class="mt-10">
-          <div class="relative max-w-xl">
-            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-xl text-slate-400">
-              ⌕
-            </span>
+        
+<!-- Search and Filters -->
+<div class="mt-10 space-y-5">
 
-            <input
-              v-model="searchQuery"
-              type="search"
-              placeholder="Search by destination, activity or difficulty..."
-              aria-label="Search tours"
-              class="w-full rounded-full border border-[#e5e2d8] bg-white py-4 pl-14 pr-6 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
-            />
-          </div>
-        </div>
+  <!-- Search -->
+  <div class="relative max-w-xl">
+    <span class="absolute left-5 top-1/2 -translate-y-1/2 text-xl text-slate-400">
+      ⌕
+    </span>
+
+    <input
+      v-model="searchQuery"
+      type="search"
+      placeholder="Search by destination, activity or difficulty..."
+      aria-label="Search tours"
+      class="w-full rounded-full border border-[#e5e2d8] bg-white py-4 pl-14 pr-6 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#55745c] focus:ring-2 focus:ring-[#55745c]/10"
+    />
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+    <!-- Destination -->
+    <select
+      v-model="selectedDestination"
+      aria-label="Filter by destination"
+      class="w-full rounded-xl border border-[#e5e2d8] bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-[#55745c]"
+    >
+      <option value="">All Destinations</option>
+      <option
+        v-for="destination in destinations"
+        :key="destination.id"
+        :value="String(destination.id)"
+      >
+        {{ destination.name }}
+      </option>
+    </select>
+
+    <!-- Difficulty -->
+    <select
+      v-model="selectedDifficulty"
+      aria-label="Filter by difficulty"
+      class="w-full rounded-xl border border-[#e5e2d8] bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-[#55745c]"
+    >
+      <option value="">All Difficulties</option>
+      <option value="Easy">Easy</option>
+      <option value="Moderate">Moderate</option>
+      <option value="Challenging">Challenging</option>
+      <option value="Very Challenging">Very Challenging</option>
+    </select>
+
+    <!-- Duration -->
+    <select
+      v-model="selectedDuration"
+      aria-label="Filter by duration"
+      class="w-full rounded-xl border border-[#e5e2d8] bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-[#55745c]"
+    >
+      <option value="">All Durations</option>
+      <option value="short">Short (up to 3 days)</option>
+      <option value="medium">Medium (4–14 days)</option>
+      <option value="long">Long (over 14 days)</option>
+      <option value="other">Other / Unspecified</option>
+    </select>
+
+    <!-- Sort by Price -->
+    <select
+      v-model="sortBy"
+      aria-label="Sort tours by price"
+      class="w-full rounded-xl border border-[#e5e2d8] bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-[#55745c]"
+    >
+      <option value="">Default Order</option>
+      <option value="price_low">Price: Low to High</option>
+      <option value="price_high">Price: High to Low</option>
+    </select>
+
+  </div>
+
+  <!-- Clear Filters -->
+  <div v-if="hasActiveFilters" class="flex justify-end">
+    <button
+      type="button"
+      @click="clearFilters"
+      class="text-sm font-semibold text-[#55745c] transition hover:text-[#9b8051]"
+    >
+      Clear All Filters ✕
+    </button>
+  </div>
+
+</div>
+
 
         <!-- Destination Map -->
 <div v-if="!loading && !error && filteredTours.length" class="mt-12">
