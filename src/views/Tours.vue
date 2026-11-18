@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import AppButton from '../components/ui/AppButton.vue'
+import GoogleMap from '../components/GoogleMap.vue'
 
 const searchQuery = ref('')
 const tours = ref([])
@@ -55,6 +56,38 @@ const filteredTours = computed(() => {
       .filter(Boolean)
       .some(value => String(value).toLowerCase().includes(query))
   )
+})
+const mapDestinations = computed(() => {
+  const destinations = new Map()
+
+  filteredTours.value.forEach(tour => {
+    const destination = tour.destination
+
+    if (
+      !destination ||
+      destination.latitude === null ||
+      destination.latitude === undefined ||
+      destination.longitude === null ||
+      destination.longitude === undefined
+    ) {
+      return
+    }
+
+    const key = destination.id ??
+      `${destination.latitude}-${destination.longitude}`
+
+    if (!destinations.has(key)) {
+      destinations.set(key, {
+        id: destination.id,
+        name: destination.name,
+        description: destination.location || '',
+        latitude: destination.latitude,
+        longitude: destination.longitude,
+      })
+    }
+  })
+
+  return Array.from(destinations.values())
 })
 
 const scrollToTours = () => {
@@ -151,6 +184,35 @@ onMounted(fetchTours)
           </div>
         </div>
 
+        <!-- Destination Map -->
+<div v-if="!loading && !error && filteredTours.length" class="mt-12">
+  <div class="mb-5">
+    <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#9b8051]">
+      Explore Nepal on the Map
+    </p>
+
+    <h3 class="mt-2 font-serif text-2xl text-[#193b2b]">
+      Discover Our Destinations
+    </h3>
+
+    <p class="mt-2 text-sm text-slate-500">
+      Explore the locations of our available tours.
+    </p>
+  </div>
+
+  <GoogleMap
+    :locations="mapDestinations"
+    :zoom="7"
+    height="450px"
+  />
+
+  <p
+    v-if="!mapDestinations.length"
+    class="mt-3 text-sm text-slate-500"
+  >
+    Destination coordinates haven't been added yet.
+  </p>
+</div>
         <!-- Loading -->
         <div
           v-if="loading"

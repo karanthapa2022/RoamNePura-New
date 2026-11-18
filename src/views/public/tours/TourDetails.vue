@@ -1,9 +1,9 @@
-
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import AppButton from '../../../components/ui/AppButton.vue'
+import GoogleMap from '../../../components/GoogleMap.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,6 +31,38 @@ const galleryImages = computed(() => {
   ].filter(Boolean)
 
   return [...new Set(images)]
+})
+
+const destinationCoordinates = computed(() => {
+  const destination = tour.value?.destination
+
+  if (
+    !destination ||
+    destination.latitude === null ||
+    destination.latitude === undefined ||
+    destination.longitude === null ||
+    destination.longitude === undefined
+  ) {
+    return []
+  }
+
+  return [
+    {
+      id: destination.id,
+      name: destination.name,
+      description: destination.location || '',
+      latitude: destination.latitude,
+      longitude: destination.longitude,
+    }
+  ]
+})
+
+const directionsUrl = computed(() => {
+  if (!destinationCoordinates.value.length) return ''
+
+  const destination = destinationCoordinates.value[0]
+
+  return `https://www.openstreetmap.org/directions?to=${destination.latitude}%2C${destination.longitude}`
 })
 
 const fetchTour = async () => {
@@ -206,6 +238,49 @@ watch(
                 {{ tour.description }}
               </p>
             </div>
+
+            <!-- Destination Location -->
+<div class="mt-14">
+  <p class="text-xs font-bold uppercase tracking-[0.25em] text-[#9b8051]">
+    Find Your Destination
+  </p>
+
+  <h2 class="mt-3 font-serif text-3xl text-[#193b2b]">
+    Where You'll Explore
+  </h2>
+
+  <p
+    v-if="destinationCoordinates.length"
+    class="mt-3 text-sm text-slate-500"
+  >
+    {{ destinationCoordinates[0].name }}
+  </p>
+
+  <div v-if="destinationCoordinates.length" class="mt-6">
+    <GoogleMap
+      :locations="destinationCoordinates"
+      :zoom="10"
+      height="400px"
+    />
+
+    <a
+      :href="directionsUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="mt-5 inline-flex items-center rounded-full bg-[#193b2b] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#10271e]"
+    >
+      Get Directions →
+    </a>
+  </div>
+
+  <p
+    v-else
+    class="mt-5 rounded-2xl bg-white p-6 text-sm leading-7 text-slate-500"
+  >
+    Location coordinates haven't been added for this destination yet.
+    Please contact our team for location information.
+  </p>
+</div>
 
             <!-- Highlights -->
             <div v-if="tour.highlights" class="mt-14">
