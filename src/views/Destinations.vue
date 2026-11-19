@@ -2,13 +2,13 @@
 import { ref, computed, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import { getDestinations } from "../api/destinations";
+import { getStorageUrl } from "../config/api";
 
 const destinations = ref([]);
 const searchQuery = ref("");
 const loading = ref(false);
 const error = ref("");
 
-const API_ORIGIN = "http://127.0.0.1:8000";
 const FALLBACK_IMAGE = "/images/IMG_6464.jpg";
 
 function getDestinationImage(destination) {
@@ -16,13 +16,7 @@ function getDestinationImage(destination) {
     return FALLBACK_IMAGE;
   }
 
-  if (destination.image.startsWith("http")) {
-    return destination.image;
-  }
-
-  const imagePath = destination.image.replace(/^\/+/, "");
-
-  return `${API_ORIGIN}/storage/${imagePath}`;
+  return getStorageUrl(destination.image);
 }
 
 const filteredDestinations = computed(() => {

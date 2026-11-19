@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { API_ORIGIN, getStorageUrl } from "../../config/api";
 
 import {
   getAdminTours,
@@ -180,15 +181,12 @@ async function confirmDeleteTour() {
 function getImageUrl(image) {
   if (!image) return null;
 
-  if (image.startsWith("http")) return image;
-
-  if (image.startsWith("/")) {
-    return `http://127.0.0.1:8000${image}`;
+  if (image.startsWith("/") && !image.startsWith("/storage/")) {
+    return `${API_ORIGIN}${image}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${image}`;
+  return getStorageUrl(image);
 }
-
 function formatPrice(price) {
   const amount = Number(price);
 

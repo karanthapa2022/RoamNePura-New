@@ -1,8 +1,8 @@
-
 <script setup>
 import { ref, watch } from "vue";
 import { useRoute, RouterLink } from "vue-router";
 import { getDestination } from "../../../api/destinations";
+import { getStorageUrl } from "../../../config/api";
 
 const route = useRoute();
 
@@ -10,7 +10,6 @@ const destination = ref(null);
 const loading = ref(false);
 const error = ref("");
 
-const API_ORIGIN = "http://127.0.0.1:8000";
 const FALLBACK_IMAGE = "/images/IMG_6464.jpg";
 
 function getDestinationImage() {
@@ -18,13 +17,7 @@ function getDestinationImage() {
     return FALLBACK_IMAGE;
   }
 
-  if (destination.value.image.startsWith("http")) {
-    return destination.value.image;
-  }
-
-  const imagePath = destination.value.image.replace(/^\/+/, "");
-
-  return `${API_ORIGIN}/storage/${imagePath}`;
+  return getStorageUrl(destination.value.image);
 }
 
 async function fetchDestination() {

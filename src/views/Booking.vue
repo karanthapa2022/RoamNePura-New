@@ -5,13 +5,9 @@ import { useRoute } from "vue-router";
 import axios from "axios";
 import { getDestinations } from "../api/destinations";
 import { createBooking } from "../services/bookingApi";
+import { API_BASE, getStorageUrl } from "../config/api";
 
 const route = useRoute();
-
-const API_BASE =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
-
-const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
 const destinations = ref([]);
 const availableTours = ref([]);
@@ -88,11 +84,7 @@ function destinationImage(destination) {
     return "/images/IMG_6464.jpg";
   }
 
-  if (destination.image.startsWith("http")) {
-    return destination.image;
-  }
-
-  return `${API_ORIGIN}/storage/${destination.image.replace(/^\/+/, "")}`;
+  return getStorageUrl(destination.image);
 }
 
 async function fetchDestinations() {
@@ -115,6 +107,7 @@ async function fetchDestinations() {
   }
 }
 
+
 async function fetchTours() {
   try {
     const response = await axios.get(`${API_BASE}/tours`);
@@ -125,7 +118,6 @@ async function fetchTours() {
 
     availableTours.value = data;
 
-    // Automatically select the tour passed through the URL.
     const tourSlug = route.query.tour;
 
     if (tourSlug && !route.query.destination) {
@@ -134,13 +126,23 @@ async function fetchTours() {
       );
 
       if (matchingTour) {
-        selectedTour.value = matchingTour.name;
+        const linkedDestination = matchingTour.destination;
+
+        if (
+          linkedDestination &&
+          Number(linkedDestination.is_published) === 1
+        ) {
+          selectedTour.value = linkedDestination.name;
+        } else if (!linkedDestination) {
+          selectedTour.value = matchingTour.name;
+        }
       }
     }
   } catch (error) {
     console.error("Unable to load tours:", error);
   }
 }
+
 
 async function submitBooking() {
   successMessage.value = "";

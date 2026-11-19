@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { API_BASE } from "../../config/api";
 
 const successMessage = ref("");
 
@@ -11,9 +12,6 @@ const loadError = ref("");
 const destinationsError = ref("");
 
 let messageTimer;
-
-const API_BASE =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 onMounted(() => {
   successMessage.value = sessionStorage.getItem("admin_message") || "";

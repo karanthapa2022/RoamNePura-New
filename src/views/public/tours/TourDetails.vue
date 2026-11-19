@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import AppButton from '../../../components/ui/AppButton.vue'
 import GoogleMap from '../../../components/GoogleMap.vue'
+import { API_BASE, getStorageUrl } from '../../../config/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,13 +14,10 @@ const loading = ref(true)
 const error = ref('')
 const activeImage = ref('')
 
-const API_BASE =
-  import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
-
 const getImageUrl = (image) => {
   if (!image) return '/images/IMG_6933.jpg'
-  if (image.startsWith('http')) return image
-  return `http://127.0.0.1:8000/storage/${image}`
+
+  return getStorageUrl(image)
 }
 
 const galleryImages = computed(() => {

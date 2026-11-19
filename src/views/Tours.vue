@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import AppButton from '../components/ui/AppButton.vue'
 import GoogleMap from '../components/GoogleMap.vue'
+import { API_BASE, getStorageUrl } from '../config/api'
 
 const searchQuery = ref('')
 const selectedDestination = ref('')
@@ -13,9 +14,6 @@ const sortBy = ref('')
 const tours = ref([])
 const loading = ref(true)
 const error = ref('')
-
-const API_BASE =
-  import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
 
 const fetchTours = async () => {
   loading.value = true
@@ -35,11 +33,8 @@ const fetchTours = async () => {
 const getImageUrl = (image) => {
   if (!image) return '/images/IMG_6933.jpg'
 
-  if (image.startsWith('http')) return image
-
-  return `http://127.0.0.1:8000/storage/${image}`
+  return getStorageUrl(image)
 }
-
 
 const formatPrice = (price) => {
   const amount = Number(price)

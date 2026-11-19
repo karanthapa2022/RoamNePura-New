@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { getReviews, submitReview } from '../api/reviews'
 import { RouterLink } from 'vue-router'
 import { getDestinations } from '../api/destinations'
+import { getStorageUrl } from '../config/api'
 
 const destinations = ref([])
 const loading = ref(true)
@@ -23,8 +24,6 @@ const reviewForm = ref({
   website: ''
 })
 
-const API_ORIGIN = 'http://127.0.0.1:8000'
-
 const fallbackImages = [
   '/images/IMG_6464.jpg',
   '/images/IMG_6933.jpg',
@@ -36,11 +35,7 @@ function destinationImage(destination, index) {
     return fallbackImages[index % fallbackImages.length]
   }
 
-  if (destination.image.startsWith('http')) {
-    return destination.image
-  }
-
-  return `${API_ORIGIN}/storage/${destination.image.replace(/^\/+/, '')}`
+  return getStorageUrl(destination.image)
 }
 
 async function fetchDestinations() {

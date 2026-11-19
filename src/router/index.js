@@ -1,145 +1,124 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Home from "../views/Home.vue";
-import Destinations from "../views/Destinations.vue";
-import Tours from "../views/Tours.vue";
-import About from "../views/About.vue";
-import Contact from "../views/Contact.vue";
-import Booking from "../views/Booking.vue";
-import AdminLayout from "../Layouts/AdminLayout.vue";
-import AdminLogin from "../views/admin/AdminLogin.vue";
-import AdminDashboard from "../views/admin/AdminDashboard.vue";
-import AdminDestinations from "../views/admin/AdminDestinations.vue";
-import AdminDestinationCreate from "../views/admin/AdminDestinationCreate.vue";
-import AdminDestinationEdit from "../views/admin/AdminDestinationEdit.vue";
-import DestinationDetails from "../views/public/destinations/DestinationDetails.vue";
-import AdminInquiries from "../views/admin/AdminInquiries.vue";
-import AdminBookings from "../views/admin/AdminBookings.vue";
-import AdminTours from "../views/admin/AdminTours.vue";
-import AdminTourForm from "../views/admin/AdminTourForm.vue";
-import TourDetails from "../views/public/tours/TourDetails.vue";
-import AdminSettings from "../views/admin/AdminSettings.vue";
-import AdminNotifications from "../views/admin/AdminNotifications.vue";
-import AdminReviews from "../views/admin/AdminReviews.vue";
-import NotFound from "../views/NotFound.vue";
-import AdminForgotPassword from "../views/admin/AdminForgotPassword.vue";
-import AdminResetPassword from "../views/admin/AdminResetPassword.vue";
 
-const router= createRouter({
+const routes = [
+    {
+        path: "/",
+        component: () => import("../views/Home.vue"),
+    },
+    {
+        path: "/destinations",
+        component: () => import("../views/Destinations.vue"),
+    },
+    {
+        path: "/destinations/:slug",
+        component: () => import("../views/public/destinations/DestinationDetails.vue"),
+    },
+    {
+        path: "/tours",
+        component: () => import("../views/Tours.vue"),
+    },
+    {
+        path: "/tours/:slug",
+        component: () => import("../views/public/tours/TourDetails.vue"),
+    },
+    {
+        path: "/about",
+        component: () => import("../views/About.vue"),
+    },
+    {
+        path: "/contact",
+        component: () => import("../views/Contact.vue"),
+    },
+    {
+        path: "/booking",
+        component: () => import("../views/Booking.vue"),
+    },
+    {
+        path: "/bookings",
+        redirect: "/booking",
+    },
+    {
+        path: "/admin/login",
+        component: () => import("../views/admin/AdminLogin.vue"),
+    },
+    {
+        path: "/admin/forgot-password",
+        component: () => import("../views/admin/AdminForgotPassword.vue"),
+    },
+    {
+        path: "/admin/reset-password",
+        component: () => import("../views/admin/AdminResetPassword.vue"),
+    },
+    {
+        path: "/admin",
+        component: () => import("../Layouts/AdminLayout.vue"),
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: "",
+                redirect: "/admin/dashboard",
+            },
+            {
+                path: "dashboard",
+                component: () => import("../views/admin/AdminDashboard.vue"),
+            },
+            {
+                path: "notifications",
+                component: () => import("../views/admin/AdminNotifications.vue"),
+            },
+            {
+                path: "destinations",
+                component: () => import("../views/admin/AdminDestinations.vue"),
+            },
+            {
+                path: "destinations/create",
+                component: () => import("../views/admin/AdminDestinationCreate.vue"),
+            },
+            {
+                path: "destinations/:id/edit",
+                component: () => import("../views/admin/AdminDestinationEdit.vue"),
+            },
+            {
+                path: "tours",
+                component: () => import("../views/admin/AdminTours.vue"),
+            },
+            {
+                path: "tours/create",
+                component: () => import("../views/admin/AdminTourForm.vue"),
+            },
+            {
+                path: "tours/:id/edit",
+                component: () => import("../views/admin/AdminTourForm.vue"),
+            },
+            {
+                path: "bookings",
+                component: () => import("../views/admin/AdminBookings.vue"),
+            },
+            {
+                path: "inquiries",
+                component: () => import("../views/admin/AdminInquiries.vue"),
+            },
+            {
+                path: "reviews",
+                component: () => import("../views/admin/AdminReviews.vue"),
+            },
+            {
+                path: "settings",
+                component: () => import("../views/admin/AdminSettings.vue"),
+            },
+        ],
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        component: () => import("../views/NotFound.vue"),
+    },
+];
+
+const router = createRouter({
     history: createWebHistory(),
-    routes:[
-        {
-        path: '/',
-        component: Home,
-    },
+    routes,
+});
 
-
-        {
-            path:'/destinations',
-            component: Destinations,
-        },
-        {
-    path: "/destinations/:slug",
-    component: DestinationDetails,
-},
-
-        {
-            path:'/tours',
-            component: Tours,
-        },
-        {
-    path: "/tours/:slug",
-    component: TourDetails,
-},
-
-        {
-            path:'/about',
-            component: About,
-        },
-
-        {
-            path:'/contact',
-            component: Contact,
-        },
-        {
-            path:'/booking',
-            component: Booking,
-        },
-        {
-    path: '/bookings',
-    redirect: '/booking',
-},
-        {
-    path: "/admin/login",
-    component: AdminLogin,
-},
-{ path: "/admin/forgot-password",
-     component: AdminForgotPassword
-    },
-{ path: "/admin/reset-password",
-    component: AdminResetPassword
-},
-
-        {
-
-    path: "/admin",
-    component: AdminLayout,
-    meta: {requiresAuth: true},
-    children: [
-
-        {
-            path: "",
-            redirect: "/admin/dashboard",
-        },
-        {
-  path: "dashboard",
-  component: AdminDashboard,
-},
-{
-  path: "notifications",
-  component: AdminNotifications,
-},
-{
-  path: "destinations",
-  component: AdminDestinations,
-},
-{
-  path: "destinations/create",
-  component: AdminDestinationCreate,
-},
-{
-  path: "destinations/:id/edit",
-  component: AdminDestinationEdit,
-},
-{
-    path: "tours",
-    component: AdminTours,
-},
-{
-    path: "tours/create",
-    component: AdminTourForm,
-},
-{
-    path: "tours/:id/edit",
-    component: AdminTourForm,
-},
-{
-    path: "bookings",
-    component: AdminBookings,
-},
-{ path: "inquiries", component: AdminInquiries },
-{
-    path: "reviews",
-    component: AdminReviews,
-},
-{
-  path: "settings",
-  component: AdminSettings,
-},
-],},{
-    path: "/:pathMatch(.*)*",
-    component: NotFound,
-},
-],})
 router.beforeEach((to) => {
     const token = sessionStorage.getItem("admin_token");
 
@@ -155,4 +134,5 @@ router.beforeEach((to) => {
         return "/admin/dashboard";
     }
 });
-export default router
+
+export default router;

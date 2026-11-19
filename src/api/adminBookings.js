@@ -1,8 +1,6 @@
 
 import axios from "axios";
-
-const API_URL =
-    import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+import { API_BASE as API_URL } from "../config/api";
 
 function getAdminHeaders() {
     const token = sessionStorage.getItem("admin_token");

@@ -7,6 +7,7 @@ import {
   updateAdminTour,
 } from "../../api/adminTours";
 import { getAdminDestinations } from "../../api/adminDestinations";
+import { getStorageUrl } from "../../config/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -55,20 +56,7 @@ const form = ref({
   is_published: false,
 });
 
-const API_BASE =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
-
-const API_STORAGE = `${API_BASE.replace(/\/api\/?$/, "")}/storage/`;
-
-const getImageUrl = (image) => {
-  if (!image) return "";
-
-  if (image.startsWith("http")) {
-    return image;
-  }
-
-  return `${API_STORAGE}${image.replace(/^\/+/, "")}`;
-};
+const getImageUrl = (image) => getStorageUrl(image);
 
 const makeSlug = () => {
   form.value.slug = form.value.name

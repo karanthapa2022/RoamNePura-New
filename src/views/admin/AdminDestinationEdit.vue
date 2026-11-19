@@ -5,6 +5,7 @@ import {
   getAdminDestination,
   updateAdminDestination,
 } from "../../api/adminDestinations";
+import { getStorageUrl } from "../../config/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -76,16 +77,11 @@ const fetchDestination = async () => {
     loading.value = false;
   }
 };
-const API_ORIGIN = "http://127.0.0.1:8000";
 
 function getDestinationImage(image) {
-    if (!image) return "";
+  if (!image) return "";
 
-    if (image.startsWith("http")) {
-        return image;
-    }
-
-    return `${API_ORIGIN}/storage/${image.replace(/^\/+/, "")}`;
+  return getStorageUrl(image);
 }
 
 const updateDestination = async () => {

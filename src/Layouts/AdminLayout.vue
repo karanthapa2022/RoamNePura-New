@@ -5,6 +5,7 @@ import axios from "axios";
 
 import AdminSidebar from "../components/admin/AdminSidebar.vue";
 import AdminHeader from "../components/admin/AdminHeader.vue";
+import { API_BASE } from "../config/api";
 
 const router = useRouter();
 const sidebarOpen = ref(false);
@@ -12,8 +13,6 @@ const sidebarOpen = ref(false);
 const INACTIVITY_LIMIT = 30 * 60 * 1000;
 const ACTIVITY_SYNC_INTERVAL = 60 * 1000;
 
-const API_URL =
-    import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 let inactivityTimer = null;
 let lastActivity = Date.now();
@@ -49,7 +48,7 @@ async function syncBackendActivity(force = false) {
 
     try {
         await axios.post(
-            `${API_URL}/admin/activity`,
+            `${API_BASE}/admin/activity`,
             {},
             {
                 headers: {
