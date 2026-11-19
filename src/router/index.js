@@ -21,6 +21,8 @@ import AdminSettings from "../views/admin/AdminSettings.vue";
 import AdminNotifications from "../views/admin/AdminNotifications.vue";
 import AdminReviews from "../views/admin/AdminReviews.vue";
 import NotFound from "../views/NotFound.vue";
+import AdminForgotPassword from "../views/admin/AdminForgotPassword.vue";
+import AdminResetPassword from "../views/admin/AdminResetPassword.vue";
 
 const router= createRouter({
     history: createWebHistory(),
@@ -29,9 +31,9 @@ const router= createRouter({
         path: '/',
         component: Home,
     },
-    
-   
-        { 
+
+
+        {
             path:'/destinations',
             component: Destinations,
         },
@@ -39,7 +41,7 @@ const router= createRouter({
     path: "/destinations/:slug",
     component: DestinationDetails,
 },
-    
+
         {
             path:'/tours',
             component: Tours,
@@ -48,12 +50,12 @@ const router= createRouter({
     path: "/tours/:slug",
     component: TourDetails,
 },
-    
+
         {
             path:'/about',
             component: About,
         },
-    
+
         {
             path:'/contact',
             component: Contact,
@@ -70,14 +72,20 @@ const router= createRouter({
     path: "/admin/login",
     component: AdminLogin,
 },
+{ path: "/admin/forgot-password",
+     component: AdminForgotPassword
+    },
+{ path: "/admin/reset-password",
+    component: AdminResetPassword
+},
 
         {
-            
+
     path: "/admin",
     component: AdminLayout,
     meta: {requiresAuth: true},
     children: [
-        
+
         {
             path: "",
             redirect: "/admin/dashboard",

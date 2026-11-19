@@ -107,7 +107,7 @@ await router.push("/admin/dashboard");
               v-model="email"
               type="email"
               autocomplete="email"
-              placeholder="admin@roamnepura.com"
+              placeholder="Enter your email"
               class="w-full rounded-[10px] border border-[#e7e3da] px-3.5 py-2.5 text-sm text-[#1c2a22] outline-none transition focus:border-[#1f5c3f] focus:ring-3 focus:ring-[#e6f0ea]"
             />
           </div>
@@ -141,6 +141,14 @@ await router.push("/admin/dashboard");
           </button>
 
         </form>
+        <div class="mt-4 text-right">
+    <RouterLink
+        to="/admin/forgot-password"
+        class="text-sm font-medium text-[#1f5c3f] hover:underline"
+    >
+        Forgot password?
+    </RouterLink>
+</div>
       </div>
 
       <p class="mt-6 text-center text-xs text-[#6b756e]">

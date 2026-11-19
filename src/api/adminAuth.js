@@ -6,6 +6,7 @@ const API_URL =
 export function adminLogin(credentials) {
     return axios.post(`${API_URL}/admin/login`, credentials);
 }
+
 export function adminLogout(token) {
     return axios.post(
         `${API_URL}/admin/logout`,
@@ -17,4 +18,14 @@ export function adminLogout(token) {
             },
         }
     );
+}
+
+export function requestPasswordReset(email) {
+    return axios.post(`${API_URL}/admin/forgot-password`, {
+        email,
+    });
+}
+
+export function resetAdminPassword(data) {
+    return axios.post(`${API_URL}/admin/reset-password`, data);
 }
