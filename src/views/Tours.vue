@@ -40,9 +40,17 @@ const getImageUrl = (image) => {
   return `http://127.0.0.1:8000/storage/${image}`
 }
 
+
 const formatPrice = (price) => {
-  return `From $${Number(price).toLocaleString()}`
+  const amount = Number(price)
+
+  if (price === null || price === undefined || price === "" || !Number.isFinite(amount)) {
+    return "Price unavailable"
+  }
+
+  return `From $${amount.toLocaleString()}`
 }
+
 
 // Get unique destinations from available tours
 const destinations = computed(() => {
@@ -196,6 +204,14 @@ const hasActiveFilters = computed(() => {
     selectedDifficulty.value ||
     selectedDuration.value ||
     sortBy.value
+  )
+})
+const hasActiveSearchFilters = computed(() => {
+  return (
+    searchQuery.value.trim() ||
+    selectedDestination.value ||
+    selectedDifficulty.value ||
+    selectedDuration.value
   )
 })
 
@@ -520,33 +536,35 @@ onMounted(fetchTours)
         </div>
 
         <!-- No Results -->
-        <div
-          v-else
-          class="mt-12 rounded-3xl border border-[#e9e6dc] bg-white px-6 py-16 text-center"
-        >
-          <div class="text-4xl">🔎</div>
+<div
+  v-else
+  class="mt-12 rounded-3xl border border-[#e9e6dc] bg-white px-6 py-16 text-center"
+>
+  <div class="text-4xl">🔎</div>
 
-          <h3 class="mt-5 font-serif text-2xl text-[#193b2b]">
-            {{ searchQuery ? 'No Tours Found' : 'No Tours Available Yet' }}
-          </h3>
+  <h3 class="mt-5 font-serif text-2xl text-[#193b2b]">
+    {{ hasActiveSearchFilters ? 'No Tours Found' : 'No Tours Available Yet' }}
+  </h3>
 
-          <p class="mt-3 text-sm text-slate-500">
-            {{
-              searchQuery
-                ? `We couldn't find any tours matching "${searchQuery}".`
-                : 'Our next adventures will be available here soon.'
-            }}
-          </p>
+  <p class="mt-3 text-sm text-slate-500">
+    {{
+      searchQuery.trim()
+        ? `We couldn't find any tours matching "${searchQuery}".`
+        : hasActiveSearchFilters
+          ? 'No tours match your selected filters. Try changing or clearing your filters.'
+          : 'Our next adventures will be available here soon.'
+    }}
+  </p>
 
-          <button
-            v-if="searchQuery"
-            type="button"
-            @click="searchQuery = ''"
-            class="mt-6 font-semibold text-[#55745c] transition hover:text-[#9b8051]"
-          >
-            Clear Search
-          </button>
-        </div>
+  <button
+    v-if="hasActiveSearchFilters"
+    type="button"
+    @click="clearFilters"
+    class="mt-6 font-semibold text-[#55745c] transition hover:text-[#9b8051]"
+  >
+    Clear Filters
+  </button>
+</div>
 
       </div>
     </section>

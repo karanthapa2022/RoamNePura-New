@@ -8,10 +8,10 @@ import { createBooking } from "../services/bookingApi";
 
 const route = useRoute();
 
-const API_ORIGIN = "http://127.0.0.1:8000";
-
 const API_BASE =
   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
+const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
 const destinations = ref([]);
 const availableTours = ref([]);
@@ -162,10 +162,15 @@ async function submitBooking() {
     return;
   }
 
-  if (!Number.isInteger(travelers.value) || travelers.value < 1) {
-    errorMessage.value = "Please enter at least one traveler.";
-    return;
-  }
+  if (!Number.isInteger(travelers.value)) {
+  errorMessage.value = "Number of travelers must be a whole number.";
+  return;
+}
+
+if (travelers.value < 1) {
+  errorMessage.value = "Please enter at least one traveler.";
+  return;
+}
 
   loading.value = true;
 

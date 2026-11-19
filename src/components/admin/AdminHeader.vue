@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getAdminProfile } from "../../api/adminSettings";
+import { useAuthStore } from "../../stores/authStore";
 import {
   getAdminNotifications,
   markAdminNotificationAsRead,
@@ -18,6 +18,7 @@ defineProps({
 const emit = defineEmits(["menu"]);
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 const adminName = ref("Administrator");
 
@@ -43,8 +44,7 @@ function updateAdminName(user) {
 
 async function loadAdminName() {
   try {
-    const response = await getAdminProfile();
-    const user = response.data.user || response.data;
+    const user = await authStore.fetchAdminProfile();
     updateAdminName(user);
   } catch (error) {
     console.error("Unable to load admin name:", error);
@@ -52,6 +52,7 @@ async function loadAdminName() {
 }
 
 function handleProfileUpdate(event) {
+  authStore.setAdminProfile(event.detail);
   updateAdminName(event.detail);
 }
 

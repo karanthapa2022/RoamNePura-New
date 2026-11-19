@@ -24,6 +24,7 @@ const galleryFiles = ref([]);
 const galleryPreviews = ref([]);
 
 const existingGallery = ref([]);
+const galleryImagesToRemove = ref([]);
 
 const destinations = ref([]);
 const loadDestinations = async () => {
@@ -54,14 +55,19 @@ const form = ref({
   is_published: false,
 });
 
-const API_STORAGE = "http://127.0.0.1:8000/storage/";
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
+const API_STORAGE = `${API_BASE.replace(/\/api\/?$/, "")}/storage/`;
 
 const getImageUrl = (image) => {
   if (!image) return "";
 
-  return image.startsWith("http")
-    ? image
-    : `${API_STORAGE}${image}`;
+  if (image.startsWith("http")) {
+    return image;
+  }
+
+  return `${API_STORAGE}${image.replace(/^\/+/, "")}`;
 };
 
 const makeSlug = () => {
@@ -97,6 +103,14 @@ const removeGalleryImage = (index) => {
 
   galleryFiles.value.splice(index, 1);
   galleryPreviews.value.splice(index, 1);
+};
+
+const removeExistingGalleryImage = (image) => {
+  galleryImagesToRemove.value.push(image);
+
+  existingGallery.value = existingGallery.value.filter(
+    (item) => item !== image
+  );
 };
 
 const addItineraryDay = () => {
@@ -226,6 +240,9 @@ const submitTour = async () => {
     galleryFiles.value.forEach((file) => {
       data.append("gallery_images[]", file);
     });
+    galleryImagesToRemove.value.forEach((image) => {
+  data.append("_remove_gallery[]", image);
+});
 
     if (isEditing.value) {
       await updateAdminTour(route.params.id, data);
@@ -487,17 +504,29 @@ onMounted(async () => {
           </p>
 
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            <img
-              v-for="(image, index) in existingGallery"
-              :key="index"
-              :src="getImageUrl(image)"
-              alt="Existing tour gallery image"
-              class="h-32 w-full rounded-xl object-cover"
-            />
-          </div>
+  <div
+    v-for="(image, index) in existingGallery"
+    :key="image"
+    class="relative"
+  >
+    <img
+      :src="getImageUrl(image)"
+      alt="Existing tour gallery image"
+      class="h-32 w-full rounded-xl object-cover"
+    />
+
+    <button
+      type="button"
+      @click="removeExistingGalleryImage(image)"
+      class="absolute right-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs text-white"
+    >
+      Remove
+    </button>
+  </div>
+</div>
 
           <p class="mt-3 text-xs text-[#8a918b]">
-            Existing images are kept when you upload additional images.
+            Remove unwanted existing images or upload additional photographs.
           </p>
         </div>
 

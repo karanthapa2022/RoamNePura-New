@@ -88,9 +88,13 @@ async function openNotification(notification) {
 
     const url = notification.data?.url;
 
-    if (url) {
-      router.push(url);
-    }
+if (url && url.startsWith("/") && !url.startsWith("//")) {
+  // Open internal application routes.
+  router.push(url);
+} else if (url && /^https?:\/\//i.test(url)) {
+  // Open external websites in a new tab.
+  window.open(url, "_blank", "noopener,noreferrer");
+}
   } catch (error) {
     console.error("Unable to open notification:", error);
   }

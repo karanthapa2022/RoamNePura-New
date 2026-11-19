@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "../../stores/authStore";
 import { useRouter } from "vue-router";
 import { adminLogout } from "../../api/adminAuth";
-import { getAdminProfile } from "../../api/adminSettings";
+
 
 const emit = defineEmits(["close"]);
 
@@ -29,18 +29,17 @@ function updateAdminDetails(user) {
 }
 
 async function loadAdminProfile() {
-  try {
-    const response = await getAdminProfile();
-    const user = response.data.user || response.data;
-
-    updateAdminDetails(user);
-  } catch (error) {
-    console.error("Unable to load admin profile:", error);
-  }
+    try {
+        const user = await authStore.fetchAdminProfile();
+        updateAdminDetails(user);
+    } catch (error) {
+        console.error("Unable to load admin profile:", error);
+    }
 }
 
 function handleProfileUpdate(event) {
-  updateAdminDetails(event.detail);
+    authStore.setAdminProfile(event.detail);
+    updateAdminDetails(event.detail);
 }
 
 onMounted(() => {
